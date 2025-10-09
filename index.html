@@ -271,9 +271,9 @@
             <label for="produto">Produto *</label>
             <select id="produto" name="produto" required>
             <option value="">Selecione</option>
-            <option value="produto1">Produto 1</option>
-            <option value="produto2">Produto 2</option>
-            <option value="produto3">Produto 3</option>
+            <option value="produto1">Carregando...</option>
+            <option value="produto2">Carregando...</option>
+            <option value="produto3">Carregando...</option>
         </select>
             <div class="error-msg" id="erro-produto"></div>
         </div>
@@ -626,6 +626,72 @@ Aceitou Política: Sim
             }
         });
     </script>
+
+    <script>
+            
+        async function preencherDropdown() {
+            
+            const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
+
+            try {
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Verificação de segurança mais completa
+                const campos = data?.data?.fields;
+
+                //Verfica se o dado campos é não nulo
+                if (!campos) {
+                    console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
+                    return; 
+                }
+
+                // Encontra os produtos dentro dos objetos retornado pela API
+                const produtos = campos.find(field => field.label === "Produto");
+                const opcoesDeProduto = produtos.config.settings.options;
+
+                // Colocando todos os produtos em uma variável chamada todosProdutos
+                // A função reduce serve para fazer chamada recursiva de uma função em todos os elementos do array
+                var todosProdutos = opcoesDeProduto.reduce(
+                    function(prev, curr){
+
+                    if (curr.text != "voluntario global"){
+
+                        return [...prev, curr.text];
+                    }
+
+                    return [...prev]
+
+                    },
+                    []
+                )
+
+                // AQUI O CÓDIGO DO DROPDOWN SERÁ EXECUTADO SÓ DEPOIS QUE TUDO ACIMA TERMINAR
+                const dropdown = document.getElementById('produto');
+                dropdown.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecione';
+                dropdown.appendChild(defaultOption);
+
+                todosProdutos.forEach(produto => {
+                    const newOption = document.createElement('option');
+                    newOption.value = produto;
+                    newOption.textContent = produto;
+                    dropdown.appendChild(newOption);
+                });
+
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        }
+
+        preencherDropdown();
+
+    </script>
+
 </body>
 
 </html>
