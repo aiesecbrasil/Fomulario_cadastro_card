@@ -270,10 +270,7 @@
         <div class="input-extra">
             <label for="produto">Produto *</label>
             <select id="produto" name="produto" required>
-            <option value="">Selecione</option>
-            <option value="produto1">Carregando...</option>
-            <option value="produto2">Carregando...</option>
-            <option value="produto3">Carregando...</option>
+            <option value="">Carregando...</option>
         </select>
             <div class="error-msg" id="erro-produto"></div>
         </div>
@@ -630,6 +627,25 @@ Aceitou Política: Sim
     <script>
             
         async function preencherDropdown() {
+
+
+//__________________________________________BOTÃO PRODUTO____________________________________________________
+
+            // Cria o menu suspenso
+            const dropdown = document.getElementById('produto');
+            dropdown.innerHTML = '';
+            dropdown.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Carregando';
+            dropdown.appendChild(defaultOption);
+
+            defaultOption.setAttribute('disabled', '');
+            defaultOption.setAttribute('selected', '');
+
+//____________________________________________________________________________________________________
             
             const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
 
@@ -667,19 +683,6 @@ Aceitou Política: Sim
                     []
                 )
 
-                // Cria o menu suspenso
-                const dropdown = document.getElementById('produto');
-                dropdown.innerHTML = '';
-    
-                // Cria a opção  opção de guia e já adiciona os atributos
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'Carregando...';
-
-                dropdown.appendChild(defaultOption);
-
-                
-
                 todosProdutos.forEach(produto => {
                     const newOption = document.createElement('option');
                     newOption.value = produto;
@@ -687,14 +690,10 @@ Aceitou Política: Sim
                     dropdown.appendChild(newOption);
                 });
 
-                defaultOption.textContent = 'Selecione';
-
-                // Deixa o botão sem ser selecionável
-                defaultOption.setAttribute('disabled', '');
-                defaultOption.setAttribute('selected', '');
-
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption.textContent = "Selecione";
                 dropdown.removeAttribute("disabled");
-                
 
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
