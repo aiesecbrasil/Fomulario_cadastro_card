@@ -667,14 +667,18 @@ Aceitou Política: Sim
                     []
                 )
 
-                // AQUI O CÓDIGO DO DROPDOWN SERÁ EXECUTADO SÓ DEPOIS QUE TUDO ACIMA TERMINAR
+                // Cria o menu suspenso
                 const dropdown = document.getElementById('produto');
                 dropdown.innerHTML = '';
-
+    
+                // Cria a opção  opção de guia e já adiciona os atributos
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
-                defaultOption.textContent = 'Selecione';
+                defaultOption.textContent = 'Carregando...';
+
                 dropdown.appendChild(defaultOption);
+
+                
 
                 todosProdutos.forEach(produto => {
                     const newOption = document.createElement('option');
@@ -682,6 +686,15 @@ Aceitou Política: Sim
                     newOption.textContent = produto;
                     dropdown.appendChild(newOption);
                 });
+
+                defaultOption.textContent = 'Selecione';
+
+                // Deixa o botão sem ser selecionável
+                defaultOption.setAttribute('disabled', '');
+                defaultOption.setAttribute('selected', '');
+
+                dropdown.removeAttribute("disabled");
+                
 
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
