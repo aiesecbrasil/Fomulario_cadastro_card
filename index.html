@@ -690,8 +690,6 @@ Aceitou Política: Sim
                 const response = await fetch(url);
                 const data = await response.json();
 
-//____________________________Lógica Produtos_____________________________________________________
-
                 // Verificação de segurança mais completa
                 const campos = data?.data?.fields;
 
@@ -700,6 +698,9 @@ Aceitou Política: Sim
                     console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
                     return; 
                 }
+
+                
+//____________________________Lógica Produtos_____________________________________________________
 
                 // Encontra os produtos dentro dos objetos retornado pela API
                 const produtos = campos.find(field => field.label === "Produto");
