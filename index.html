@@ -281,8 +281,6 @@
             <select id="aiesec" name="aiesec" required>
             <option value="">Selecione</option>
             <option value="aiesec1">AIESEC 1</option>
-            <option value="aiesec2">AIESEC 2</option>
-            <option value="aiesec3">AIESEC 3</option>
         </select>
             <div class="error-msg" id="erro-aiesec"></div>
         </div>
@@ -646,13 +644,53 @@ Aceitou Política: Sim
             defaultOption.setAttribute('selected', '');
 
 //____________________________________________________________________________________________________
-            
+
+
+//__________________________________BOTÃO AIESEC MAIS PRÓXIMA_______________________________________
+
+            // Cria o menu suspenso
+            const dropdown_AiesecProx= document.getElementById('aiesec');
+            dropdown_AiesecProx.innerHTML = '';
+            dropdown_AiesecProx.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption_AiesecProx = document.createElement('option');
+            defaultOption_AiesecProx.value = '';
+            defaultOption_AiesecProx.textContent = 'Carregando';
+            dropdown_AiesecProx.appendChild(defaultOption_AiesecProx);
+
+            defaultOption_AiesecProx.setAttribute('disabled', '');
+            defaultOption_AiesecProx.setAttribute('selected', '');
+
+//________________________________________________________________________________________________
+
+
+//___________________________BOTÃO COMO CONHECEU A AIESEC_________________________________________
+
+              // Cria o menu suspenso
+            const dropdown_Como_Conheceu= document.getElementById('conheceu');
+            dropdown_Como_Conheceu.innerHTML = '';
+            dropdown_Como_Conheceu.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption_Como_Conheceu = document.createElement('option');
+            defaultOption_Como_Conheceu.value = '';
+            defaultOption_Como_Conheceu.textContent = 'Carregando';
+            dropdown_Como_Conheceu.appendChild(defaultOption_Como_Conheceu);
+
+            defaultOption_Como_Conheceu.setAttribute('disabled', '');
+            defaultOption_Como_Conheceu.setAttribute('selected', '');
+
+//_________________________________________________________________________________________________
+
             const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
 
             try {
 
                 const response = await fetch(url);
                 const data = await response.json();
+
+//____________________________Lógica Produtos_____________________________________________________
 
                 // Verificação de segurança mais completa
                 const campos = data?.data?.fields;
@@ -672,7 +710,7 @@ Aceitou Política: Sim
                 var todosProdutos = opcoesDeProduto.reduce(
                     function(prev, curr){
 
-                    if (curr.text != "voluntario global"){
+                    if (curr.status == "active"){
 
                         return [...prev, curr.text];
                     }
@@ -695,6 +733,76 @@ Aceitou Política: Sim
                 defaultOption.textContent = "Selecione";
                 dropdown.removeAttribute("disabled");
 
+//________________________________________________________________________________________________
+
+
+//____________________________Lógica Aiesec Mais Próxima__________________________________________
+
+                const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
+                const aiesecs = aiesecProx.config.settings.options;
+
+                var todasAiesecs = aiesecs.reduce(
+                    function(prev, curr){
+                        
+                        if(curr.status == "active"){
+                            return [...prev, curr.text];
+                        }
+
+                        return [...prev]
+
+                    },
+                    []
+                )
+
+                todasAiesecs.forEach(aiesec => {
+                    const newOption = document.createElement('option');
+                    newOption.value = aiesec;
+                    newOption.textContent = aiesec;
+                    dropdown_AiesecProx.appendChild(newOption);
+                });
+
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption_AiesecProx.textContent = "Selecione";
+                dropdown_AiesecProx.removeAttribute("disabled");
+
+
+//________________________________________________________________________________________________
+
+
+//______________________Lógica Como conheceu a AIESEC______________________________________________
+
+
+                const comoConheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?");
+                const opçoes_Como_Conheceu = comoConheceu.config.settings.options;
+
+
+                var todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce(
+                    function(prev, curr){
+                        
+                        if(curr.status == "active"){
+                            return [...prev, curr.text];
+                        }
+
+                        return [...prev]
+
+                    },
+                    []
+                )
+
+                todasOpcoes_Como_Conheceu.forEach(opcoes => {
+                    const newOption = document.createElement('option');
+                    newOption.value = opcoes;
+                    newOption.textContent = opcoes;
+                    dropdown_Como_Conheceu.appendChild(newOption);
+                });
+
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption_Como_Conheceu.textContent = "Selecione";
+                dropdown_Como_Conheceu.removeAttribute("disabled");
+
+                
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
