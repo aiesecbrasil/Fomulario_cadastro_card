@@ -6,6 +6,7 @@
     <meta name="description" content="Formulario de interesse nos intercambios da AIESEC no Brasil">
     <title>Formulário AIESEC</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -309,11 +310,32 @@
             <div class="error-msg" id="erro-politica"></div>
         </div>
 
-        <button type="submit">Enviar</button>
+        <button type="submit" id="botaoSubmit">Enviar</button>
 
     </form>
 
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">CONFIRME SEUS DADOS:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <pre id="DadosAqui"></pre>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary">Enviar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script>
         // -------------------- Máscara e validação de telefone --------------------
         function aplicarMascaraTelefone(input) {
@@ -604,20 +626,37 @@
 
                 const dados = `
 Nome: ${document.getElementById('nome').value}
+
 Sobrenome: ${document.getElementById('sobrenome').value}
-Emails:
-${emails}
-Telefones:
-${limparTelefoneFormatado(telefones)}
+
+Emails: ${emails}
+
+Telefones: ${limparTelefoneFormatado(telefones)}
+
 Data de Nascimento: ${inputISO.value}
+
 Produto: ${document.getElementById('produto').value}
+
 AIESEC: ${document.getElementById('aiesec').value}
+
 Como conheceu: ${document.getElementById('conheceu').value}
+
 Aceitou Política: Sim
         `;
+                document.getElementById("DadosAqui").textContent = dados;
+                const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
+                myModal.show();
 
-                alert("Formulário enviado com sucesso!\n\n" + dados);
-                // this.submit(); // Removido para simular envio sem recarregar a página
+
+
+                
+                //if(confirm("Confirme seus dados: \n" + dados)){
+
+                    //alert("Formulário enviado com sucesso!\n\n");
+                    // this.submit(); // Removido para simular envio sem recarregar a página
+
+                //};
+                
             }
         });
     </script>
