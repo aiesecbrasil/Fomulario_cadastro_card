@@ -328,7 +328,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary">Enviar</button>
+            <button type="button" class="btn btn-primary" id="botaoConfirmar">Enviar</button>
         </div>
         </div>
     </div>
@@ -647,13 +647,23 @@ Aceitou Política: Sim
                 const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
                 myModal.show();
 
+                botaoConfirmar = document.getElementById("botaoConfirmar");
+                botaoConfirmar.addEventListener("click", function (e) {
+                
+                    alert("Formulário enviado com sucesso!\n\n");
+                    myModal.hide();
+                    forms = document.getElementById("meuForm");
+                    forms.reset()
+                    // this.submit(); // Removido para simular envio sem recarregar a página
+  
+})
+
 
 
                 
                 //if(confirm("Confirme seus dados: \n" + dados)){
 
-                    //alert("Formulário enviado com sucesso!\n\n");
-                    // this.submit(); // Removido para simular envio sem recarregar a página
+                    
 
                 //};
                 
