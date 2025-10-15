@@ -7,6 +7,7 @@
     <title>Formulário AIESEC</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -186,6 +187,32 @@
             margin: 6px 0 0 26px;
             line-height: 1.4;
         }
+
+        .modal-title {
+
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            color: #004a99;
+            font-weight: 600;
+            text-align: center;
+
+        }
+
+        .modal-body {
+
+            font-family: 'Arial', sans-serif;
+            font-size: 1rem; 
+            line-height: 1.6; 
+            color: #000000; 
+            text-align: left; 
+            padding: 2rem; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+
+            background-color: #f8f9fa; 
+        }
         
         button[type="submit"] {
             display: block;
@@ -320,14 +347,14 @@
     <div class="modal-dialog">
         <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLongTitle">CONFIRME SEUS DADOS:</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="exampleModalLongTitle">Confirme seus dados:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="botaoFechar"></button>
         </div>
         <div class="modal-body">
             <pre id="DadosAqui"></pre>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="botaoCancelar">Cancelar</button>
             <button type="button" class="btn btn-primary" id="botaoConfirmar">Enviar</button>
         </div>
         </div>
@@ -643,32 +670,50 @@ Como conheceu: ${document.getElementById('conheceu').value}
 
 Aceitou Política: Sim
         `;
+                //Mostra os dados no Modal que vai aparecer
                 document.getElementById("DadosAqui").textContent = dados;
                 const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
                 myModal.show();
 
-                botaoConfirmar = document.getElementById("botaoConfirmar");
-                botaoConfirmar.addEventListener("click", function (e) {
+                const botaoConfirmar = document.getElementById("botaoConfirmar");
                 
-                    alert("Formulário enviado com sucesso!\n\n");
-                    myModal.hide();
-                    forms = document.getElementById("meuForm");
-                    forms.reset()
+                //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
+                botaoConfirmar.addEventListener("click", function (e) {
+
+                    const tituloModal = document.getElementById("exampleModalLongTitle");
+                    
+                    const botaoRemover = document.getElementById("botaoCancelar");
+                    botaoRemover.style.display = 'none';
+
+                    document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
+                    tituloModal.textContent = "Dados enviados com sucesso!"
+
+                    botaoConfirmar.textContent = "Ok"
+
+                    //Caso a pessoa click em OK, recarrega a página e reseta o forms
+                    botaoConfirmar.addEventListener("click", function (e) {
+
+                        forms = document.getElementById("meuForm");
+                        forms.reset();
+                        location.reload(); 
+                    });
+
+                    const botaoFechar = document.getElementById("botaoFechar");
+                    botaoFechar.addEventListener("click", function (e) {
+                        
+                        forms = document.getElementById("meuForm");
+                        forms.reset();
+                        location.reload(); 
+                    });
+                    
                     // this.submit(); // Removido para simular envio sem recarregar a página
   
-})
+    })
 
-
-
-                
-                //if(confirm("Confirme seus dados: \n" + dados)){
-
-                    
-
-                //};
                 
             }
         });
+
     </script>
 
     <script>
