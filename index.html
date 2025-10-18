@@ -3,8 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="Formulario de interesse nos intercambios da AIESEC no Brasil">
     <title>Formulário AIESEC</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -184,6 +187,32 @@
             margin: 6px 0 0 26px;
             line-height: 1.4;
         }
+
+        .modal-title {
+
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            color: #004a99;
+            font-weight: 600;
+            text-align: center;
+
+        }
+
+        .modal-body {
+
+            font-family: 'Arial', sans-serif;
+            font-size: 1rem; 
+            line-height: 1.6; 
+            color: #000000; 
+            text-align: left; 
+            padding: 2rem; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+
+            background-color: #f8f9fa; 
+        }
         
         button[type="submit"] {
             display: block;
@@ -269,10 +298,7 @@
         <div class="input-extra">
             <label for="produto">Produto *</label>
             <select id="produto" name="produto" required>
-            <option value="">Selecione</option>
-            <option value="produto1">Produto 1</option>
-            <option value="produto2">Produto 2</option>
-            <option value="produto3">Produto 3</option>
+            <option value="">Carregando...</option>
         </select>
             <div class="error-msg" id="erro-produto"></div>
         </div>
@@ -283,8 +309,6 @@
             <select id="aiesec" name="aiesec" required>
             <option value="">Selecione</option>
             <option value="aiesec1">AIESEC 1</option>
-            <option value="aiesec2">AIESEC 2</option>
-            <option value="aiesec3">AIESEC 3</option>
         </select>
             <div class="error-msg" id="erro-aiesec"></div>
         </div>
@@ -313,11 +337,32 @@
             <div class="error-msg" id="erro-politica"></div>
         </div>
 
-        <button type="submit">Enviar</button>
+        <button type="submit" id="botaoSubmit">Enviar</button>
 
     </form>
 
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">Confirme seus dados:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="botaoFechar"></button>
+        </div>
+        <div class="modal-body">
+            <pre id="DadosAqui"></pre>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="botaoCancelar">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="botaoConfirmar">Enviar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script>
         // -------------------- Máscara e validação de telefone --------------------
         function aplicarMascaraTelefone(input) {
@@ -608,23 +653,260 @@
 
                 const dados = `
 Nome: ${document.getElementById('nome').value}
+
 Sobrenome: ${document.getElementById('sobrenome').value}
-Emails:
-${emails}
-Telefones:
-${limparTelefoneFormatado(telefones)}
+
+Emails: ${emails}
+
+Telefones: ${limparTelefoneFormatado(telefones)}
+
 Data de Nascimento: ${inputISO.value}
+
 Produto: ${document.getElementById('produto').value}
+
 AIESEC: ${document.getElementById('aiesec').value}
+
 Como conheceu: ${document.getElementById('conheceu').value}
+
 Aceitou Política: Sim
         `;
+                //Mostra os dados no Modal que vai aparecer
+                document.getElementById("DadosAqui").textContent = dados;
+                const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
+                myModal.show();
 
-                alert("Formulário enviado com sucesso!\n\n" + dados);
-                // this.submit(); // Removido para simular envio sem recarregar a página
+                const botaoConfirmar = document.getElementById("botaoConfirmar");
+                
+                //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
+                botaoConfirmar.addEventListener("click", function (e) {
+
+                    const tituloModal = document.getElementById("exampleModalLongTitle");
+                    
+                    const botaoRemover = document.getElementById("botaoCancelar");
+                    botaoRemover.style.display = 'none';
+
+                    document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
+                    tituloModal.textContent = "Dados enviados com sucesso!"
+
+                    botaoConfirmar.textContent = "Ok"
+
+                    //Caso a pessoa click em OK, recarrega a página e reseta o forms
+                    botaoConfirmar.addEventListener("click", function (e) {
+
+                        forms = document.getElementById("meuForm");
+                        forms.reset();
+                        location.reload(); 
+                    });
+
+                    const botaoFechar = document.getElementById("botaoFechar");
+                    botaoFechar.addEventListener("click", function (e) {
+                        
+                        forms = document.getElementById("meuForm");
+                        forms.reset();
+                        location.reload(); 
+                    });
+                    
+                    // this.submit(); // Removido para simular envio sem recarregar a página
+  
+    })
+
+                
             }
         });
+
     </script>
+
+    <script>
+            
+        async function preencherDropdown() {
+
+
+//__________________________________________BOTÃO PRODUTO____________________________________________________
+
+            // Cria o menu suspenso
+            const dropdown = document.getElementById('produto');
+            dropdown.innerHTML = '';
+            dropdown.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Carregando';
+            dropdown.appendChild(defaultOption);
+
+            defaultOption.setAttribute('disabled', '');
+            defaultOption.setAttribute('selected', '');
+
+//____________________________________________________________________________________________________
+
+
+//__________________________________BOTÃO AIESEC MAIS PRÓXIMA_______________________________________
+
+            // Cria o menu suspenso
+            const dropdown_AiesecProx= document.getElementById('aiesec');
+            dropdown_AiesecProx.innerHTML = '';
+            dropdown_AiesecProx.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption_AiesecProx = document.createElement('option');
+            defaultOption_AiesecProx.value = '';
+            defaultOption_AiesecProx.textContent = 'Carregando';
+            dropdown_AiesecProx.appendChild(defaultOption_AiesecProx);
+
+            defaultOption_AiesecProx.setAttribute('disabled', '');
+            defaultOption_AiesecProx.setAttribute('selected', '');
+
+//________________________________________________________________________________________________
+
+
+//___________________________BOTÃO COMO CONHECEU A AIESEC_________________________________________
+
+              // Cria o menu suspenso
+            const dropdown_Como_Conheceu= document.getElementById('conheceu');
+            dropdown_Como_Conheceu.innerHTML = '';
+            dropdown_Como_Conheceu.setAttribute("disabled", "")
+
+            // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
+            const defaultOption_Como_Conheceu = document.createElement('option');
+            defaultOption_Como_Conheceu.value = '';
+            defaultOption_Como_Conheceu.textContent = 'Carregando';
+            dropdown_Como_Conheceu.appendChild(defaultOption_Como_Conheceu);
+
+            defaultOption_Como_Conheceu.setAttribute('disabled', '');
+            defaultOption_Como_Conheceu.setAttribute('selected', '');
+
+//_________________________________________________________________________________________________
+
+            const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
+
+            try {
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Verificação de segurança mais completa
+                const campos = data?.data?.fields;
+
+                //Verfica se o dado campos é não nulo
+                if (!campos) {
+                    console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
+                    return; 
+                }
+
+                
+//____________________________Lógica Produtos_____________________________________________________
+
+                // Encontra os produtos dentro dos objetos retornado pela API
+                const produtos = campos.find(field => field.label === "Produto");
+                const opcoesDeProduto = produtos.config.settings.options;
+
+                // Colocando todos os produtos em uma variável chamada todosProdutos
+                // A função reduce serve para fazer chamada recursiva de uma função em todos os elementos do array
+                var todosProdutos = opcoesDeProduto.reduce(
+                    function(prev, curr){
+
+                    if (curr.status == "active"){
+
+                        return [...prev, curr.text];
+                    }
+
+                    return [...prev]
+
+                    },
+                    []
+                )
+
+                todosProdutos.forEach(produto => {
+                    const newOption = document.createElement('option');
+                    newOption.value = produto;
+                    newOption.textContent = produto;
+                    dropdown.appendChild(newOption);
+                });
+
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption.textContent = "Selecione";
+                dropdown.removeAttribute("disabled");
+
+//________________________________________________________________________________________________
+
+
+//____________________________Lógica Aiesec Mais Próxima__________________________________________
+
+                const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
+                const aiesecs = aiesecProx.config.settings.options;
+
+                var todasAiesecs = aiesecs.reduce(
+                    function(prev, curr){
+                        
+                        if(curr.status == "active"){
+                            return [...prev, curr.text];
+                        }
+
+                        return [...prev]
+
+                    },
+                    []
+                )
+
+                todasAiesecs.forEach(aiesec => {
+                    const newOption = document.createElement('option');
+                    newOption.value = aiesec;
+                    newOption.textContent = aiesec;
+                    dropdown_AiesecProx.appendChild(newOption);
+                });
+
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption_AiesecProx.textContent = "Selecione";
+                dropdown_AiesecProx.removeAttribute("disabled");
+
+
+//________________________________________________________________________________________________
+
+
+//______________________Lógica Como conheceu a AIESEC______________________________________________
+
+
+                const comoConheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?");
+                const opçoes_Como_Conheceu = comoConheceu.config.settings.options;
+
+
+                var todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce(
+                    function(prev, curr){
+                        
+                        if(curr.status == "active"){
+                            return [...prev, curr.text];
+                        }
+
+                        return [...prev]
+
+                    },
+                    []
+                )
+
+                todasOpcoes_Como_Conheceu.forEach(opcoes => {
+                    const newOption = document.createElement('option');
+                    newOption.value = opcoes;
+                    newOption.textContent = opcoes;
+                    dropdown_Como_Conheceu.appendChild(newOption);
+                });
+
+                // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
+                // ativa o Menu Suspenso novamente
+                defaultOption_Como_Conheceu.textContent = "Selecione";
+                dropdown_Como_Conheceu.removeAttribute("disabled");
+
+                
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        }
+
+        preencherDropdown();
+
+    </script>
+
 </body>
 
 </html>
