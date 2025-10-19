@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="Formulario de interesse nos intercambios da AIESEC no Brasil">
-    <title>Formulário AIESEC</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description"
+            content="Formulario de interesse nos intercambios da AIESEC no Brasil">
+        <title>Formulário AIESEC</title>
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+            crossorigin="anonymous">
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <style>
         body {
             font-family: 'Arial', sans-serif;
             max-width: 650px;
@@ -117,6 +124,11 @@
         
         .remove-btn:hover {
             background-color: #a71d2a;
+        }
+
+        .remove-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .error-msg {
@@ -233,137 +245,134 @@
             background-color: #005a9e;
         }
     </style>
-</head>
+    </head>
 
-<body>
+    <body>
 
-    <h2>Formulário AIESEC</h2>
-    <form id="meuForm">
+        <h2>Formulário AIESEC</h2>
+        <form id="meuForm">
 
-        <!-- Nome e Sobrenome -->
-        <div class="input-group">
-            <input type="text" id="nome" placeholder=" " required />
-            <label for="nome">Nome</label>
-            <div class="error-msg" id="erro-nome"></div>
-        </div>
+            <!-- Nome e Sobrenome -->
+            <div class="input-group">
+                <input type="text" id="nome" placeholder=" " required />
+                <label for="nome">Nome</label>
+                <div class="error-msg" id="erro-nome"></div>
+            </div>
 
-        <div class="input-group">
-            <input type="text" id="sobrenome" placeholder=" " required />
-            <label for="sobrenome">Sobrenome</label>
-            <div class="error-msg" id="erro-sobrenome"></div>
-        </div>
+            <div class="input-group">
+                <input type="text" id="sobrenome" placeholder=" " required />
+                <label for="sobrenome">Sobrenome</label>
+                <div class="error-msg" id="erro-sobrenome"></div>
+            </div>
 
-        <!-- Emails -->
-        <label>Email *</label>
-        <div id="emails-container">
-            <div class="campo-multiplo">
-                <select name="emailTipo[]">
-                <option value="outros">Outros</option>
-                <option value="casa">Casa</option>
-                <option value="trabalho">Trabalho</option>
-            </select>
-                <input type="email" name="email[]" placeholder="Email" />
-                <button type="button" class="remove-btn" onclick="removeCampo(this, 'email')">✖</button>
+            <!-- Emails -->
+            <label>Email *</label>
+            <div id="emails-container"></div>
+            <button type="button" id="email" class="add-btn" onclick="addEmail()">Adicionar
+                outro</button>
+            <div class="error-msg" id="erro-email"></div>
+
+            <!-- Telefones -->
+            <label>Telefone *</label>
+            <div id="telefones-container"></div>
+            <button type="button" class="add-btn" id="telefone"
+                onclick="addTelefone()">Adicionar outro</button>
+            <div class="error-msg" id="erro-telefone"></div>
+
+            <!-- Data de nascimento -->
+            <label>Data de Nascimento *</label>
+            <div class="input-calendario">
+                <input type="text" id="nascimento" placeholder="DD/MM/YYYY"
+                    maxlength="10" />
+                <span>📅</span>
+            </div>
+            <input type="hidden" id="nascimento-iso" name="nascimento" />
+            <div class="error-msg" id="erro-nascimento"></div>
+
+            <!-- Produto -->
+            <div class="input-extra">
+                <label for="produto">Produto *</label>
+                <select id="produto" name="produto" required>
+                    <option value>Carregando...</option>
+                </select>
+                <div class="error-msg" id="erro-produto"></div>
+            </div>
+
+            <!-- AIESEC mais próxima -->
+            <div class="input-extra">
+                <label for="aiesec">Qual é a AIESEC mais próxima de você?
+                    *</label>
+                <select id="aiesec" name="aiesec" required>
+                    <option value>Carregando...</option>
+                </select>
+                <div class="error-msg" id="erro-aiesec"></div>
+            </div>
+
+            <!-- Como conheceu -->
+            <div class="input-extra">
+                <label for="conheceu">Como você conheceu a AIESEC? *</label>
+                <select id="conheceu" name="conheceu" required>
+                    <option value>Carregando...</option>
+                </select>
+                <div class="error-msg" id="erro-conheceu"></div>
+            </div>
+
+            <!-- Checkbox Política de Privacidade -->
+            <div class="input-extra checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="politica" name="politica"
+                        required />
+                    <span><strong>Eu concordo com a coleta e uso dos meus dados
+                            conforme a Política de Privacidade *</strong></span>
+                </label>
+                <div class="checkbox-msg">
+                    Estamos coletando seus dados para enviar informações sobre
+                    oportunidades de intercâmbio. Seus dados serão tratados
+                    conforme a LGPD e não serão compartilhados sem
+                    consentimento.
+                </div>
+                <div class="error-msg" id="erro-politica"></div>
+            </div>
+
+            <button type="submit" id="botaoSubmit">Enviar</button>
+
+        </form>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModalLong" tabindex="-1"
+            aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"
+                            id="exampleModalLongTitle">Confirme seus dados:</h5>
+                        <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"
+                            id="botaoFechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <pre id="DadosAqui"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            id="botaoCancelar">Cancelar</button>
+                        <button type="button" class="btn btn-primary"
+                            id="botaoConfirmar">Enviar</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <button type="button" class="add-btn" onclick="addEmail()">Adicionar outro</button>
-        <div class="error-msg" id="erro-email"></div>
 
-        <!-- Telefones -->
-        <label>Telefone *</label>
-        <div id="telefones-container">
-            <div class="campo-multiplo">
-                <select name="telefoneTipo[]">
-                <option value="outros">Outros</option>
-                <option value="celular">Celular</option>
-                <option value="casa">Casa</option>
-            </select>
-                <input type="tel" name="telefone[]" placeholder="Telefone" />
-                <button type="button" class="remove-btn" onclick="removeCampo(this, 'telefone')">✖</button>
-            </div>
-        </div>
-        <button type="button" class="add-btn" onclick="addTelefone()">Adicionar outro</button>
-        <div class="error-msg" id="erro-telefone"></div>
-
-        <!-- Data de nascimento -->
-        <label>Data de Nascimento *</label>
-        <div class="input-calendario">
-            <input type="text" id="nascimento" placeholder="DD/MM/YYYY" maxlength="10" />
-            <span>📅</span>
-        </div>
-        <input type="hidden" id="nascimento-iso" name="nascimento" />
-        <div class="error-msg" id="erro-nascimento"></div>
-
-        <!-- Produto -->
-        <div class="input-extra">
-            <label for="produto">Produto *</label>
-            <select id="produto" name="produto" required>
-            <option value="">Carregando...</option>
-        </select>
-            <div class="error-msg" id="erro-produto"></div>
-        </div>
-
-        <!-- AIESEC mais próxima -->
-        <div class="input-extra">
-            <label for="aiesec">Qual é a AIESEC mais próxima de você? *</label>
-            <select id="aiesec" name="aiesec" required>
-            <option value="">Selecione</option>
-            <option value="aiesec1">AIESEC 1</option>
-        </select>
-            <div class="error-msg" id="erro-aiesec"></div>
-        </div>
-
-        <!-- Como conheceu -->
-        <div class="input-extra">
-            <label for="conheceu">Como você conheceu a AIESEC? *</label>
-            <select id="conheceu" name="conheceu" required>
-            <option value="">Selecione</option>
-            <option value="internet">Internet</option>
-            <option value="amigos">Amigos</option>
-            <option value="evento">Evento</option>
-        </select>
-            <div class="error-msg" id="erro-conheceu"></div>
-        </div>
-
-        <!-- Checkbox Política de Privacidade -->
-        <div class="input-extra checkbox-group">
-            <label class="checkbox-label">
-            <input type="checkbox" id="politica" name="politica" required />
-            <span><strong>Eu concordo com a coleta e uso dos meus dados conforme a Política de Privacidade *</strong></span>
-        </label>
-            <div class="checkbox-msg">
-                Estamos coletando seus dados para enviar informações sobre oportunidades de intercâmbio. Seus dados serão tratados conforme a LGPD e não serão compartilhados sem consentimento.
-            </div>
-            <div class="error-msg" id="erro-politica"></div>
-        </div>
-
-        <button type="submit" id="botaoSubmit">Enviar</button>
-
-    </form>
-
-
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModalLong" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLongTitle">Confirme seus dados:</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="botaoFechar"></button>
-        </div>
-        <div class="modal-body">
-            <pre id="DadosAqui"></pre>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="botaoCancelar">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="botaoConfirmar">Enviar</button>
-        </div>
-        </div>
-    </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <script>
+        <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+        <script>
+        let campos;
+        const telefoneClick = documente.getElementById("telefone");
+        const emailClick = document.getElementById("email"); 
         // -------------------- Máscara e validação de telefone --------------------
         function aplicarMascaraTelefone(input) {
             input.addEventListener('input', function(e) {
@@ -446,10 +455,6 @@
                 }
             });
         }
-
-
-
-
         // -------------------- Validação de nome/sobrenome --------------------
         function validarNome(id, erroId) {
             const input = document.getElementById(id);
@@ -475,46 +480,108 @@
         });
 
         // -------------------- Adicionar/Remover campos --------------------
-        function addEmail() {
+        async function addEmail() {
             const container = document.getElementById('emails-container');
             const div = document.createElement('div');
+
+            const tipoEmail = campos.find(field => field.label === "Email");
+            const opcoesDeTipoEmail = tipoEmail.config.settings.possible_types;
+
             div.className = 'campo-multiplo';
+
+            // Traduz cada tipo
+            const traducoes = await Promise.all(opcoesDeTipoEmail.map(tipo => traduzirPalavras([tipo])));
+
+            let optionsHTML = '';
+            traducoes.forEach(trad => {
+                const t = trad[0]; // traduzirPalavras retorna array de objetos
+                if (t.original === "other"){
+                    optionsHTML += `<option value="${t.original.toLowerCase()}" selected>${t.traduzido}</option>`;
+                } else{
+                    optionsHTML += `<option value="${t.original.toLowerCase()}">${t.traduzido}</option>`;
+                }
+            });
+
+            // Monta o HTML do campo
             div.innerHTML = `
-        <select name="emailTipo[]">
-            <option value="outros">Outros</option>
-            <option value="casa">Casa</option>
-            <option value="trabalho">Trabalho</option>
-        </select>
-        <input type="email" name="email[]" placeholder="Email" />
-        <button type="button" class="remove-btn" onclick="removeCampo(this, 'email')">✖</button>
-    `;
+                <select name="emailTipo[]">
+                    ${optionsHTML}
+                </select>
+                <input type="email" name="email[]" placeholder="Email" />
+                <button type="button" id="remove-email" class="remove-btn" onclick="removeCampo(this, 'email')">✖</button>
+            `;
+
             container.appendChild(div);
-            aplicarValidacaoEmail(div.querySelector('input'));
+            validarEmailComProvedor(div.querySelector('input'));
+            // Atualiza botões de remoção
+            const botoes = container.querySelectorAll('.remove-btn');
+            botoes.forEach(btn => (btn.disabled = botoes.length === 1));
         }
 
-        function addTelefone() {
+
+        async function addTelefone() {
             const container = document.getElementById('telefones-container');
             const div = document.createElement('div');
+
+            // Pega o campo "Telefone" dentro do array 'campos'
+            const tipoTelefone = campos.find(field => field.label === "Telefone");
+            const opcoesDeTipoTelefone = tipoTelefone.config.settings.possible_types;
+            
             div.className = 'campo-multiplo';
+
+            // Traduz cada tipo
+            const traducoes = await Promise.all(opcoesDeTipoTelefone.map(tipo => traduzirPalavras([tipo])));
+
+            let optionsHTML = '';
+            traducoes.forEach(trad => {
+                const t = trad[0]; // traduzirPalavras retorna array de objetos
+                if (t.original === "other"){
+                    optionsHTML += `<option value="${t.original.toLowerCase()}" selected>${t.traduzido}</option>`;
+                } else{
+                    optionsHTML += `<option value="${t.original.toLowerCase()}">${t.traduzido}</option>`;
+                }
+            });
+
+            // Monta o HTML do campo de telefone
             div.innerHTML = `
-        <select name="telefoneTipo[]">
-            <option value="outros">Outros</option>
-            <option value="celular">Celular</option>
-            <option value="casa">Casa</option>
-        </select>
-        <input type="tel" name="telefone[]" placeholder="Telefone" />
-        <button type="button" class="remove-btn" onclick="removeCampo(this, 'telefone')">✖</button>
-    `;
+                <select name="telefoneTipo[]">
+                    ${optionsHTML}
+                </select>
+                <input type="tel" name="telefone[]" placeholder="Telefone" />
+                <button type="button" id="remove-telefone" class="remove-btn" onclick="removeCampo(this, 'telefone')">✖</button>
+            `;
+
             container.appendChild(div);
+
+            // Aplica as funções utilitárias
             aplicarMascaraTelefone(div.querySelector('input'));
             aplicarValidacaoTelefone(div.querySelector('input'));
+
+            // Atualiza botões de remoção
+            const botoes = container.querySelectorAll('.remove-btn');
+            botoes.forEach(btn => (btn.disabled = botoes.length === 1));
         }
 
         function removeCampo(botao, tipo) {
-            const container = tipo === 'email' ? document.getElementById('emails-container') : document.getElementById('telefones-container');
-            if (container.children.length > 1) container.removeChild(botao.parentNode);
-            else alert('Deve haver pelo menos um campo.');
+            const container = tipo === 'email'
+                ? document.getElementById('emails-container')
+                : document.getElementById('telefones-container');
+
+            // Remove o campo
+            if (container.children.length > 1) {
+                container.removeChild(botao.parentNode);
+            }
+
+            // Se sobrou apenas 1 campo, desabilita o botão de remoção dele
+            if (container.children.length === 1) {
+                const ultimoBotao = container.querySelector('.remove-btn');
+                if (ultimoBotao) {
+                    ultimoBotao.disabled = true;
+                }
+            }
         }
+
+
 
         // -------------------- Pikaday - Data de nascimento --------------------
         // Inputs da data
@@ -715,8 +782,40 @@ Aceitou Política: Sim
         });
 
     </script>
+        <script>
+// Função genérica para traduzir palavras usando LibreTranslate
+async function traduzirPalavras(palavras) {
+    // 1. Tabela interna de termos comuns (manual, sem JSON externo)
+    const dicionarioBase = {
+        home: "Casa",
+        main: "Principal",
+        mobile: "Celular",
+        other: "Outro",
+        private_fax: "Fax Privado",
+        work: "Trabalho",
+        work_fax: "Fax do Trabalho"
+    };
 
-    <script>
+    // 2. Traduz cada palavra
+    const traducao = palavras.map(palavra => {
+        const limpa = palavra.toLowerCase().trim();
+        // tenta tradução direta
+        if (dicionarioBase[limpa]) {
+            return { original: palavra, traduzido: dicionarioBase[limpa] };
+        }
+        // caso não ache, tenta deduzir algo
+        if (limpa.includes('fax')) return { original: palavra, traduzido: 'Fax' };
+        if (limpa.includes('phone')) return { original: palavra, traduzido: 'Telefone' };
+        // fallback
+        return { original: palavra, traduzido: palavra };
+    });
+
+    return traducao;
+}
+
+</script>
+
+        <script>
             
         async function preencherDropdown() {
 
@@ -785,13 +884,15 @@ Aceitou Política: Sim
                 const data = await response.json();
 
                 // Verificação de segurança mais completa
-                const campos = data?.data?.fields;
+                campos = data?.data?.fields;
 
                 //Verfica se o dado campos é não nulo
                 if (!campos) {
                     console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
                     return; 
                 }
+                addEmail();
+                addTelefone();
 
                 
 //____________________________Lógica Produtos_____________________________________________________
@@ -907,6 +1008,6 @@ Aceitou Política: Sim
 
     </script>
 
-</body>
+    </body>
 
 </html>
