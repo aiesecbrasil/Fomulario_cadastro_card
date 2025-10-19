@@ -393,7 +393,6 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                 tipoTraduzido: textoTipoTraduzido
             };
         });
-        console.log(telefones)
 
         const telefonesEnvio = telefones.map(t => ({
             numero: limparTelefoneFormatado(t.numero),
@@ -607,7 +606,7 @@ async function preencherDropdown() {
 
                 if (curr.status == "active") {
 
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -616,10 +615,20 @@ async function preencherDropdown() {
             []
         )
 
-        todosProdutos.forEach(produto => {
-            const newOption = document.createElement('option');
+        const siglaProduto = ["gv", "gta", "gte"]
+        const parametros = await ParamentroURL();
+        const indiceSigla = siglaProduto.indexOf(parametros.tipoIntercambio);
+
+        todosProdutos.forEach((produto, index) => {
+            const newOption = document.createElement("option");
             newOption.value = produto.id;
             newOption.textContent = produto.text;
+
+            // Se o índice da sigla for igual ao índice do produto
+            if (index === indiceSigla) {
+                newOption.selected = true;
+            }
+
             dropdown.appendChild(newOption);
         });
 
@@ -636,11 +645,12 @@ async function preencherDropdown() {
         const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
         const aiesecs = aiesecProx.config.settings.options;
 
+
         var todasAiesecs = aiesecs.reduce(
             function (prev, curr) {
 
                 if (curr.status == "active") {
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -648,11 +658,43 @@ async function preencherDropdown() {
             },
             []
         )
-
-        todasAiesecs.forEach(aiesec => {
+        const escritorios = [
+            "AB",  // ABC
+            "AJ",  // ARACAJU
+            "BA",  // Bauru
+            "BH",  // BELO HORIZONTE
+            "BS",  // BRASÍLIA
+            "CT",  // CURITIBA
+            "FL",  // FLORIANÓPOLIS
+            "FR",  // FRANCA
+            "FO",  // FORTALEZA
+            "JP",  // JOÃO PESSOA
+            "LM",  // LIMEIRA
+            "MZ",  // MACEIÓ
+            "MN",  // MANAUS
+            "MA",  // MARINGÁ
+            "PA",  // PORTO ALEGRE
+            "RC",  // RECIFE
+            "RJ",  // RIO DE JANEIRO
+            "SS",  // SALVADOR
+            "SM",  // SANTA MARIA
+            "GV",  // SÃO PAULO UNIDADE GETÚLIO VARGAS
+            "MK",  // SÃO PAULO UNIDADE MACKENZIE
+            "US",  // SÃO PAULO UNIDADE USP
+            "SO",  // SOROCABA
+            "UB",  // UBERLÂNDIA
+            "VT",  // VITÓRIA
+            "MC" // BRASIL (NACIONAL)
+        ];
+        const indiceSiglaCL = escritorios.indexOf(parametros.cl);
+        todasAiesecs.forEach((aiesec, index) => {
             const newOption = document.createElement('option');
             newOption.value = aiesec.id;
             newOption.textContent = aiesec.text;
+            // Se o índice da sigla for igual ao índice do produto
+            if (index === indiceSiglaCL) {
+                newOption.selected = true;
+            }
             dropdown_AiesecProx.appendChild(newOption);
         });
 
@@ -676,7 +718,7 @@ async function preencherDropdown() {
             function (prev, curr) {
 
                 if (curr.status == "active") {
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -684,11 +726,28 @@ async function preencherDropdown() {
             },
             []
         )
+        function slugify(texto) {
+            return texto
+                .toLowerCase()                      // tudo minúsculo
+                .normalize("NFD")                   // separa acentos
+                .replace(/[\u0300-\u036f]/g, "")    // remove acentos
+                .replace(/[^a-z0-9 -]/g, "")        // mantém hífen, remove outros especiais
+                .trim()                              // remove espaços no início/fim
+                .replace(/\s+/g, "-")               // substitui espaços por hífen
+                .replace(/-+/g, "-");               // remove múltiplos hífens consecutivos
+        }
 
-        todasOpcoes_Como_Conheceu.forEach(opcoes => {
+
+        const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
+        const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
+        console.log(listaAnuncio)
+        todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
             const newOption = document.createElement('option');
             newOption.value = opcoes.id;
             newOption.textContent = opcoes.text;
+            if (index === indiceComoConheceuAiesec) {
+                newOption.selected = true;
+            }
             dropdown_Como_Conheceu.appendChild(newOption);
         });
 
@@ -698,9 +757,54 @@ async function preencherDropdown() {
         dropdown_Como_Conheceu.removeAttribute("disabled");
 
 
+
+
+
+        const tipoAnuncio = campos.find(field => field.label === "Como?");
+        const opçoes_Tipo_Anuncio = tipoAnuncio.config.settings.options;
+
+        var todasopçoes_Tipo_Anuncio = opçoes_Tipo_Anuncio.reduce(
+            function (prev, curr) {
+
+                if (curr.status == "active") {
+                    return [...prev, { id: curr.id, text: curr.text }];
+                }
+
+                return [...prev]
+
+            },
+            []
+        )
+
+        const listaFormaAnuncio = todasopçoes_Tipo_Anuncio.map(opcoes => slugify(opcoes.text));
+        const indiceFormaAnuncio = listaFormaAnuncio.indexOf(parametros.formaAnuncio);
+        const idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.id == indiceFormaAnuncio).map(opcoes => opcoes.text);
+        console.log(listaFormaAnuncio)
+
+
+
+
     } catch (error) {
         console.error('Erro ao buscar dados:', error);
     }
+}
+
+async function ParamentroURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    const cl = (params.get("utm_term") || "").toUpperCase();
+    const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
+    const campanha = decodeURIComponent(params.get("utm_campaign") || "");
+    const anuncio = (params.get("utm_source") || "").toLowerCase();
+    const formaAnuncio = (params.get("utm_medium") || "").toLowerCase();
+
+    return {
+        cl,
+        tipoIntercambio,
+        campanha,
+        anuncio,
+        formaAnuncio,
+    };
 }
 
 preencherDropdown();
