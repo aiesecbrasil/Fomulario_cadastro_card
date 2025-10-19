@@ -740,7 +740,7 @@ async function preencherDropdown() {
 
         const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
-        console.log(listaAnuncio)
+        
         todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
             const newOption = document.createElement('option');
             newOption.value = opcoes.id;
@@ -778,9 +778,8 @@ async function preencherDropdown() {
 
         const listaFormaAnuncio = todasopçoes_Tipo_Anuncio.map(opcoes => slugify(opcoes.text));
         const indiceFormaAnuncio = listaFormaAnuncio.indexOf(parametros.formaAnuncio);
-        const idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.id == indiceFormaAnuncio).map(opcoes => opcoes.text);
-        console.log(listaFormaAnuncio)
-
+        const idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.id == indiceFormaAnuncio).map(opcoes => opcoes.id);
+        
 
 
 
