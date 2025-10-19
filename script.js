@@ -40,7 +40,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     // Antes de enviar, pegar todos os campos de telefone e limpar a formatação
     const telefones = document.querySelectorAll('input[name="telefone[]"]');
     telefones.forEach(input => {
-        input.value = limparTelefoneFormatado(input.value);
+        input.value = input.value;
     });
 
     // Se fosse enviar de verdade:
@@ -80,6 +80,7 @@ function validarEmailComProvedor(input) {
 
         if (!provedores.includes(dominio)) {
             erro.textContent = "E-mail válido, mas provedor não reconhecido.";
+            camposErro.push("E-mail válido, mas provedor não reconhecido.")
         } else {
             erro.textContent = ""; // Tudo certo
         }
@@ -103,7 +104,9 @@ validarNome('nome', 'erro-nome');
 validarNome('sobrenome', 'erro-sobrenome');
 
 // -------------------- Aplicar validações iniciais --------------------
-document.querySelectorAll('input[name="email[]"]').forEach(validarEmailComProvedor);
+document.querySelectorAll('input[name="email[]"]').forEach(input => {
+    validarEmailComProvedor(input)
+});
 document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
     aplicarMascaraTelefone(input);
     aplicarValidacaoTelefone(input);
@@ -285,6 +288,7 @@ inputVisivel.addEventListener('input', () => {
 document.getElementById('meuForm').addEventListener('submit', function (e) {
     e.preventDefault();
     let valido = true;
+    const camposErro = [];
 
     // Nome e sobrenome
     ['nome', 'sobrenome'].forEach(id => {
@@ -293,6 +297,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         if (!regex.test(input.value.trim())) {
             document.getElementById('erro-' + id).textContent = "Campo inválido.";
             valido = false;
+            camposErro.push("nome ou Sobrenome Inválido")
         } else {
             document.getElementById('erro-' + id).textContent = "";
         }
@@ -300,12 +305,27 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
     // Email
     document.querySelectorAll('input[name="email[]"]').forEach(input => {
+        const valor = input.value.trim();
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
-        if (!regex.test(input.value)) {
+
+        if (!regex.test(valor)) {
             document.getElementById('erro-email').textContent = "E-mail inválido.";
             valido = false;
+            camposErro.push("E-mail Inválido");
+        } else {
+            // Checa provedor
+            const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
+            const dominio = valor.split('@')[1].toLowerCase();
+            if (!provedores.includes(dominio)) {
+                document.getElementById('erro-email').textContent = "E-mail válido, mas provedor não reconhecido.";
+                valido = false;
+                camposErro.push("E-mail válido, mas provedor não reconhecido.");
+            } else {
+                document.getElementById('erro-email').textContent = "";
+            }
         }
     });
+
 
     // Telefone
     document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
@@ -313,6 +333,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         if (valor.length !== 11) {
             document.getElementById('erro-telefone').textContent = "Telefone inválido.";
             valido = false;
+            camposErro.push("Telefone Inválido")
         }
     });
 
@@ -320,6 +341,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     if (!inputISO.value) {
         document.getElementById('erro-nascimento').textContent = "Data inválida.";
         valido = false;
+        camposErro.push("Data Inválida")
     } else {
         document.getElementById('erro-nascimento').textContent = "";
     }
@@ -329,6 +351,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         if (document.getElementById(id).value === "") {
             document.getElementById('erro-' + id).textContent = "Selecione uma opção.";
             valido = false;
+            camposErro.push(`Selecione uma opção de ${id}.`)
         } else {
             document.getElementById('erro-' + id).textContent = "";
         }
@@ -338,6 +361,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     if (!document.getElementById('politica').checked) {
         document.getElementById('erro-politica').textContent = "Você deve aceitar.";
         valido = false;
+        camposErro.push("você de aceitas o termo")
     } else {
         document.getElementById('erro-politica').textContent = "";
     }
@@ -346,7 +370,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     if (valido) {
         const nome = document.getElementById('nome').value
         const sobrenome = document.getElementById('sobrenome').value
-        
+
         const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
             const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
             const textoTipoOriginal = select.value;
@@ -369,6 +393,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                 tipoTraduzido: textoTipoTraduzido
             };
         });
+        console.log(telefones)
 
         const telefonesEnvio = telefones.map(t => ({
             numero: limparTelefoneFormatado(t.numero),
@@ -444,6 +469,14 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         })
 
 
+    } else {
+        //Mostra os dados no Modal que vai aparecer
+        document.getElementById("DadosAqui").textContent = `Informação Incorreta
+
+        Por favor, corrija os erros e tente novamente.
+        ${camposErro.map(campo => `- ${campo}`).join('\n')}`;
+        const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
+        myModal.show();
     }
 });
 
