@@ -256,25 +256,40 @@
             <div class="input-group">
                 <input type="text" id="nome" placeholder=" " required />
                 <label for="nome">Nome</label>
-                <div class="error-msg" id="erro-nome"></div>
+                <span class="error-msg" id="erro-nome"></span>
             </div>
 
             <div class="input-group">
                 <input type="text" id="sobrenome" placeholder=" " required />
                 <label for="sobrenome">Sobrenome</label>
-                <div class="error-msg" id="erro-sobrenome"></div>
+                <span class="error-msg" id="erro-sobrenome"></span>
             </div>
 
             <!-- Emails -->
             <label>Email *</label>
-            <div id="emails-container"></div>
-            <button type="button" id="email" class="add-btn" onclick="addEmail()">Adicionar
+            <div id="emails-container">
+                <div class="campo-multiplo">
+                    <select name="emailTipo[]"></select>
+                    <input type="email" name="email[]" placeholder="Email" />
+                    <button type="button" class="remove-btn"
+                        onclick="removeCampo(this, 'email')">✖</button>
+                </div>
+            </div>
+            <button type="button" id="email" class="add-btn"
+                onclick="addEmail()">Adicionar
                 outro</button>
             <div class="error-msg" id="erro-email"></div>
 
             <!-- Telefones -->
             <label>Telefone *</label>
-            <div id="telefones-container"></div>
+            <div id="telefones-container">
+                <div class="campo-multiplo">
+                    <select name="TelefoneTipo[]"></select>
+                    <input type="tel" name="telefone[]" placeholder="Telefone" />
+                    <button type="button" class="remove-btn"
+                        onclick="removeCampo(this, 'telefone')">✖</button>
+                </div>
+            </div>
             <button type="button" class="add-btn" id="telefone"
                 onclick="addTelefone()">Adicionar outro</button>
             <div class="error-msg" id="erro-telefone"></div>
@@ -371,8 +386,10 @@
             crossorigin="anonymous"></script>
         <script>
         let campos;
-        const telefoneClick = documente.getElementById("telefone");
-        const emailClick = document.getElementById("email"); 
+        const containerTelefone = document.getElementById('telefones-container');
+        const containerEmail = document.getElementById('emails-container');
+        containerEmail.innerHTML = '';
+        containerTelefone.innerHTML = '';
         // -------------------- Máscara e validação de telefone --------------------
         function aplicarMascaraTelefone(input) {
             input.addEventListener('input', function(e) {
@@ -481,7 +498,7 @@
 
         // -------------------- Adicionar/Remover campos --------------------
         async function addEmail() {
-            const container = document.getElementById('emails-container');
+            
             const div = document.createElement('div');
 
             const tipoEmail = campos.find(field => field.label === "Email");
@@ -511,16 +528,16 @@
                 <button type="button" id="remove-email" class="remove-btn" onclick="removeCampo(this, 'email')">✖</button>
             `;
 
-            container.appendChild(div);
+            containerEmail.appendChild(div);
             validarEmailComProvedor(div.querySelector('input'));
             // Atualiza botões de remoção
-            const botoes = container.querySelectorAll('.remove-btn');
+            const botoes = containerEmail.querySelectorAll('.remove-btn');
             botoes.forEach(btn => (btn.disabled = botoes.length === 1));
         }
 
 
         async function addTelefone() {
-            const container = document.getElementById('telefones-container');
+            
             const div = document.createElement('div');
 
             // Pega o campo "Telefone" dentro do array 'campos'
@@ -551,14 +568,14 @@
                 <button type="button" id="remove-telefone" class="remove-btn" onclick="removeCampo(this, 'telefone')">✖</button>
             `;
 
-            container.appendChild(div);
+            containerTelefone.appendChild(div);
 
             // Aplica as funções utilitárias
             aplicarMascaraTelefone(div.querySelector('input'));
             aplicarValidacaoTelefone(div.querySelector('input'));
 
             // Atualiza botões de remoção
-            const botoes = container.querySelectorAll('.remove-btn');
+            const botoes = containerTelefone.querySelectorAll('.remove-btn');
             botoes.forEach(btn => (btn.disabled = botoes.length === 1));
         }
 
@@ -580,8 +597,6 @@
                 }
             }
         }
-
-
 
         // -------------------- Pikaday - Data de nascimento --------------------
         // Inputs da data
