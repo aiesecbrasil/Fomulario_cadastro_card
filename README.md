@@ -1,7 +1,7 @@
 # 📧 Formulário para Cadastro de Interresse em Intecambio  
 
-Este projeto foi desenvolvido para **facilitar o cadastro e o mapeamento de pessoas interessadas em realizar intercâmbio**, permitindo identificar de **onde vieram os interessados (campanhas, posts, panfletos, etc.)**.
-O objetivo é **otimizar o acompanhamento das campanhas e avaliar quais canais de divulgação estão gerando mais resultados**.  
+Este projeto foi desenvolvido para **facilitar o cadastro e o mapeamento de pessoas interessadas em realizar intercâmbio**, permitindo identificar **a origem dos interessados** (campanhas, posts, panfletos, stories, etc.).  
+O objetivo é **otimizar o acompanhamento das campanhas de marketing** e **avaliar quais canais de divulgação geram mais resultados**. 
 
 A **AIESEC** é uma organização global, formada e liderada por jovens, que tem como missão **desenvolver liderança por meio de experiências práticas em ambientes desafiadores e multiculturais**.  
 
@@ -14,7 +14,13 @@ A **AIESEC** é uma organização global, formada e liderada por jovens, que tem
 
 
 ### 🐍 Python  
-Foi utilizado para contornar o bloqueio de **CORS** (*Cross-Origin Resource Sharing*), que é uma política de segurança dos navegadores que restringe requisições feitas a domínios diferentes do domínio original da aplicação.  
+Utilizado para **contornar o bloqueio de CORS** (*Cross-Origin Resource Sharing*), política de segurança que restringe requisições feitas a domínios diferentes do domínio original da aplicação.  
+Também é responsável pela **validação e envio seguro dos dados** ao Google Apps Script. 
+
+### ☁️ Google Apps Script
+Responsável por **receber e armazenar os dados enviados pelo formulário**, automatizando o registro e **facilitando o acompanhamento dos cadastros em planilhas do Google**.
+Além disso, realiza a **integração com o CRM Podio**, permitindo que o processo de gestão dos leads ocorra de forma **dinâmica e totalmente automatizada**.
+
 
 ## 👨‍💻 Autor  
 - [Caio Marinho](https://github.com/Caio-Marinho)
