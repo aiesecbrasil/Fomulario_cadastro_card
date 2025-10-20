@@ -373,8 +373,8 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
     // -------------------- Mostrar dados no alerta --------------------
     if (valido) {
-        const nome = document.getElementById('nome').value
-        const sobrenome = document.getElementById('sobrenome').value
+        const nome = document.getElementById('nome').value;
+        const sobrenome = document.getElementById('sobrenome').value;
 
         const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
             const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
@@ -407,49 +407,55 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         const emailsEnvio = emails.map(e => ({
             email: e.email,
             tipo: e.tipo
-        }))
-
+        }));
 
         const produtoSolicitado = document.getElementById('produto');
         idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
         const aiesecProxima = document.getElementById('aiesec');
-        idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value)
+        idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value);
         const meioDivulgacao = document.getElementById('conheceu');
-        idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value)
+        idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value);
+
         const dados = `
-        Nome: ${nome}
+    Nome: ${nome}
 
-        Sobrenome: ${sobrenome}
+    Sobrenome: ${sobrenome}
 
-        Emails: ${emails.map((email) => `${email.email} (${email.tipoTraduzido})`).join('\n\t\t')}
+    Emails: ${emails.map((email) => `${email.email} (${email.tipoTraduzido})`).join('\n\t\t')}
 
-        Telefones: ${telefones.map((telefone) => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\n\t\t')}
+    Telefones: ${telefones.map((telefone) => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\n\t\t')}
 
-        Data de Nascimento: ${inputVisivel.value}
+    Data de Nascimento: ${inputVisivel.value}
 
-        Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}
+    Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}
 
-        AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}
+    AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}
 
-        Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}
+    Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}
 
-        Aceitou Política: Sim`;
-        //Mostra os dados no Modal que vai aparecer
+    Aceitou Política: Sim`;
+
+        // Mostra os dados no Modal
+        const modal = document.getElementById('exampleModalLong');
+        const myModal = new bootstrap.Modal(modal);
+        const botaoConfirmar = document.getElementById("botaoConfirmar");
+        const botaoRemover = document.getElementById("botaoCancelar");
+
+        // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
+        botaoConfirmar.style.display = 'inline-block';
+        botaoConfirmar.disabled = false;
+        botaoConfirmar.textContent = "Confirmar";
+        botaoRemover.textContent = "Cancelar";
+
         document.getElementById("DadosAqui").textContent = dados;
-        const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
         myModal.show();
 
-        const botaoConfirmar = document.getElementById("botaoConfirmar");
-
-        //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
-        // Remover qualquer listener anterior (garantia total)
+        // Remove listener antigo e adiciona o novo
         botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
-
-        // Seleciona novamente o botão clonado
         const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
 
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
-            e.preventDefault(); // impede comportamentos duplos
+            e.preventDefault();
             mostrarSpinner();
 
             try {
@@ -471,15 +477,11 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                     }),
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP! Status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Erro HTTP! Status: ${response.status}`);
 
                 esconderSpinner();
 
-                // Atualiza modal com sucesso
                 const tituloModal = document.getElementById("exampleModalLongTitle");
-                const botaoRemover = document.getElementById("botaoCancelar");
                 const botaoFechar = document.getElementById("botaoFechar");
 
                 botaoRemover.style.display = "none";
@@ -487,7 +489,6 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                 document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
                 novoBotaoConfirmar.textContent = "Ok";
 
-                // Limpa listeners antigos substituindo por clone novamente
                 const botaoLimpo = novoBotaoConfirmar.cloneNode(true);
                 novoBotaoConfirmar.parentNode.replaceChild(botaoLimpo, novoBotaoConfirmar);
 
@@ -507,24 +508,25 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             }
         });
 
-
-
     } else {
-        //Mostra os dados no Modal que vai aparecer
+        // 🔻 Modal de erro
+        const modal = document.getElementById('exampleModalLong');
+        const myModal = new bootstrap.Modal(modal);
+        const botaoEnviar = document.getElementById("botaoConfirmar");
+        const botaoRemover = document.getElementById("botaoCancelar");
+
         document.getElementById("DadosAqui").textContent = `Informação Incorreta
 
         Por favor, corrija os erros e tente novamente.
         ${camposErro.map(campo => `- ${campo}`).join('\n')}`;
-        const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
-        const botaoEnviar = document.getElementById("botaoConfirmar");
+
         botaoEnviar.style.display = 'none';
-        botaoEnviar.disabled;
-        
-        const botaoRemover = document.getElementById("botaoCancelar");
+        botaoEnviar.disabled = true;
         botaoRemover.textContent = "Corrigir";
 
         myModal.show();
     }
+
 });
 
 // ============================================================================
