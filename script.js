@@ -1,6 +1,11 @@
 let campos;
 const containerTelefone = document.getElementById('telefones-container');
 const containerEmail = document.getElementById('emails-container');
+const idProduto = [];
+const idCL = [];
+const idAnuncio = [];
+let parametros;
+let idFormaAnuncio
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 // -------------------- Máscara e validação de telefone --------------------
@@ -406,9 +411,11 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
 
         const produtoSolicitado = document.getElementById('produto');
+        idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
         const aiesecProxima = document.getElementById('aiesec');
+        idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value)
         const meioDivulgacao = document.getElementById('conheceu');
-
+        idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value)
         const dados = `
         Nome: ${nome}
 
@@ -435,37 +442,70 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         const botaoConfirmar = document.getElementById("botaoConfirmar");
 
         //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
-        botaoConfirmar.addEventListener("click", function (e) {
+        botaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+            mostrarSpinner();
 
-            const tituloModal = document.getElementById("exampleModalLongTitle");
+            try {
+                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        sobrenome,
+                        emails: emailsEnvio,
+                        telefones: telefonesEnvio,
+                        dataNascimento: inputISO.value,
+                        idProduto: idProduto[0],
+                        idComite: idCL[0],
+                        idCategoria: idAnuncio[0],
+                        idAutorizacao: "1",
+                        idAnuncio: idFormaAnuncio[0],
+                        tag: parametros.campanha
+                    }),
+                });
 
-            const botaoRemover = document.getElementById("botaoCancelar");
-            botaoRemover.style.display = 'none';
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP! Status: ${response.status}`);
+                }
 
-            document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
-            tituloModal.textContent = "Dados enviados com sucesso!"
+                esconderSpinner();
 
-            botaoConfirmar.textContent = "Ok"
+                // Atualiza o modal para mensagem de sucesso
+                const tituloModal = document.getElementById("exampleModalLongTitle");
+                const botaoRemover = document.getElementById("botaoCancelar");
+                const botaoFechar = document.getElementById("botaoFechar");
 
-            //Caso a pessoa click em OK, recarrega a página e reseta o forms
-            botaoConfirmar.addEventListener("click", function (e) {
+                botaoRemover.style.display = "none";
+                tituloModal.textContent = "Dados enviados com sucesso!";
+                document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
+                botaoConfirmar.textContent = "Ok";
 
-                forms = document.getElementById("meuForm");
-                forms.reset();
-                location.reload();
-            });
+                // 🧠 Remove o listener anterior substituindo o botão por um clone
+                const novoBotao = botaoConfirmar.cloneNode(true);
+                botaoConfirmar.parentNode.replaceChild(novoBotao, botaoConfirmar);
 
-            const botaoFechar = document.getElementById("botaoFechar");
-            botaoFechar.addEventListener("click", function (e) {
+                // Novo comportamento — agora o click só recarrega e reseta
+                novoBotao.addEventListener("click", function () {
+                    const forms = document.getElementById("meuForm");
+                    forms.reset();
+                    location.reload();
+                });
 
-                forms = document.getElementById("meuForm");
-                forms.reset();
-                location.reload();
-            });
+                // Mesmo comportamento para o botão de fechar
+                botaoFechar.addEventListener("click", function () {
+                    const forms = document.getElementById("meuForm");
+                    forms.reset();
+                    location.reload();
+                });
 
-            // this.submit(); // Removido para simular envio sem recarregar a página
+            } catch (erro) {
+                console.error("Erro ao enviar dados:", erro);
+                esconderSpinner();
+            }
+        });
 
-        })
 
 
     } else {
@@ -479,6 +519,66 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     }
 });
 
+// ============================================================================
+// -------------------- FUNÇÕES DE CONTROLE DO SPINNER ------------------------
+// ============================================================================
+
+/**
+ * Exibe um spinner de carregamento centralizado na tela.
+ * 
+ * - Cria dinamicamente o elemento HTML do spinner (não precisa existir no HTML).
+ * - Bloqueia a interação com o fundo (usando overlay sem interferir no Bootstrap).
+ * - Pode ser reutilizado em qualquer parte do código.
+ */
+function mostrarSpinner() {
+    // Verifica se já existe um spinner ativo para evitar duplicação
+    if (document.getElementById('spinner-overlay')) return;
+
+    // Cria o overlay escuro
+    const overlay = document.createElement('div');
+    overlay.id = 'spinner-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0, 0, 0, 0.4)';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.zIndex = '2000'; // acima do modal
+
+    // Cria o spinner em si
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner-border';
+    spinner.role = 'status';
+
+    // Cria o texto de carregamento
+    const texto = document.createElement('p');
+    texto.textContent = 'Enviando dados, aguarde...';
+    texto.style.color = '#fff';
+    texto.style.marginTop = '15px';
+    texto.style.fontSize = '1.1rem';
+    texto.style.fontWeight = '500';
+
+    // Adiciona ao overlay
+    overlay.appendChild(spinner);
+    overlay.appendChild(texto);
+
+    // Insere o overlay no body
+    document.body.appendChild(overlay);
+}
+
+/**
+ * Remove o spinner da tela, caso esteja visível.
+ * 
+ * - É seguro chamar várias vezes (faz checagem antes de remover).
+ */
+function esconderSpinner() {
+    const overlay = document.getElementById('spinner-overlay');
+    if (overlay) overlay.remove();
+}
 
 
 // Função genérica para traduzir palavras usando LibreTranslate
@@ -616,7 +716,7 @@ async function preencherDropdown() {
         )
 
         const siglaProduto = ["gv", "gta", "gte"]
-        const parametros = await ParamentroURL();
+        parametros = await ParamentroURL();
         const indiceSigla = siglaProduto.indexOf(parametros.tipoIntercambio);
 
         todosProdutos.forEach((produto, index) => {
@@ -687,6 +787,8 @@ async function preencherDropdown() {
             "MC" // BRASIL (NACIONAL)
         ];
         const indiceSiglaCL = escritorios.indexOf(parametros.cl);
+
+
         todasAiesecs.forEach((aiesec, index) => {
             const newOption = document.createElement('option');
             newOption.value = aiesec.id;
@@ -740,7 +842,8 @@ async function preencherDropdown() {
 
         const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
-        
+
+
         todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
             const newOption = document.createElement('option');
             newOption.value = opcoes.id;
@@ -775,11 +878,7 @@ async function preencherDropdown() {
             },
             []
         )
-
-        const listaFormaAnuncio = todasopçoes_Tipo_Anuncio.map(opcoes => slugify(opcoes.text));
-        const indiceFormaAnuncio = listaFormaAnuncio.indexOf(parametros.formaAnuncio);
-        const idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.id == indiceFormaAnuncio).map(opcoes => opcoes.id);
-        
+        idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.text === parametros.formaAnuncio).map(opcoes => opcoes.id);
 
 
 
