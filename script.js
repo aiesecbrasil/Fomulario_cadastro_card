@@ -56,15 +56,19 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
 function aplicarValidacaoTelefone(input) {
     input.addEventListener('blur', function (e) {
-        const valor = e.target.value.replace(/\D/g, '');
+        const valor = e.target.value.trim();
         const erro = document.getElementById('erro-telefone');
-        if (valor.length !== 11) {
+        const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
+
+        if (!regex.test(valor)) {
             erro.textContent = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
+            camposErro.push("Telefone Inválido")
         } else {
             erro.textContent = "";
         }
     });
 }
+
 
 // -------------------- Validação de e-mail --------------------
 function validarEmailComProvedor(input) {
@@ -302,7 +306,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         if (!regex.test(input.value.trim())) {
             document.getElementById('erro-' + id).textContent = "Campo inválido.";
             valido = false;
-            camposErro.push("nome ou Sobrenome Inválido")
+            camposErro.push(`${id} Inválido`)
         } else {
             document.getElementById('erro-' + id).textContent = "";
         }
@@ -334,11 +338,16 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
     // Telefone
     document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
-        const valor = input.value.replace(/\D/g, '');
-        if (valor.length !== 11) {
-            document.getElementById('erro-telefone').textContent = "Telefone inválido.";
+        const valor = input.value.trim();
+        const erro = document.getElementById('erro-telefone');
+        const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
+
+        if (!regex.test(valor)) {
+            erro.textContent = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
             valido = false;
             camposErro.push("Telefone Inválido")
+        } else {
+            erro.textContent = "";
         }
     });
 
@@ -457,7 +466,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
             e.preventDefault();
             mostrarSpinner();
-
+            
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
@@ -473,7 +482,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                         idCategoria: idAnuncio[0],
                         idAutorizacao: "1",
                         idAnuncio: idFormaAnuncio[0],
-                        tag: [parametros.campanha]
+                        tag: parametros.campanha
                     }),
                 });
 
