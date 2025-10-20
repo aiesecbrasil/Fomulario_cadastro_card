@@ -473,7 +473,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                         idCategoria: idAnuncio[0],
                         idAutorizacao: "1",
                         idAnuncio: idFormaAnuncio[0],
-                        tag: parametros.campanha
+                        tag: [parametros.campanha]
                     }),
                 });
 
