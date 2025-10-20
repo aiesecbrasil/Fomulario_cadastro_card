@@ -442,15 +442,20 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         const botaoConfirmar = document.getElementById("botaoConfirmar");
 
         //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
-        botaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+        // Remover qualquer listener anterior (garantia total)
+        botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
+
+        // Seleciona novamente o botão clonado
+        const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
+
+        novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+            e.preventDefault(); // impede comportamentos duplos
             mostrarSpinner();
 
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         nome,
                         sobrenome,
@@ -472,7 +477,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
                 esconderSpinner();
 
-                // Atualiza o modal para mensagem de sucesso
+                // Atualiza modal com sucesso
                 const tituloModal = document.getElementById("exampleModalLongTitle");
                 const botaoRemover = document.getElementById("botaoCancelar");
                 const botaoFechar = document.getElementById("botaoFechar");
@@ -480,25 +485,21 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                 botaoRemover.style.display = "none";
                 tituloModal.textContent = "Dados enviados com sucesso!";
                 document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
-                botaoConfirmar.textContent = "Ok";
+                novoBotaoConfirmar.textContent = "Ok";
 
-                // 🧠 Remove o listener anterior substituindo o botão por um clone
-                const novoBotao = botaoConfirmar.cloneNode(true);
-                botaoConfirmar.parentNode.replaceChild(novoBotao, botaoConfirmar);
+                // Limpa listeners antigos substituindo por clone novamente
+                const botaoLimpo = novoBotaoConfirmar.cloneNode(true);
+                novoBotaoConfirmar.parentNode.replaceChild(botaoLimpo, novoBotaoConfirmar);
 
-                // Novo comportamento — agora o click só recarrega e reseta
-                novoBotao.addEventListener("click", function () {
-                    const forms = document.getElementById("meuForm");
-                    forms.reset();
+                botaoLimpo.addEventListener("click", () => {
+                    document.getElementById("meuForm").reset();
                     location.reload();
                 });
 
-                // Mesmo comportamento para o botão de fechar
-                botaoFechar.addEventListener("click", function () {
-                    const forms = document.getElementById("meuForm");
-                    forms.reset();
+                botaoFechar.addEventListener("click", () => {
+                    document.getElementById("meuForm").reset();
                     location.reload();
-                });
+                }, { once: true });
 
             } catch (erro) {
                 console.error("Erro ao enviar dados:", erro);
