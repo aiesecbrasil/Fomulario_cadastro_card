@@ -1,6 +1,11 @@
 let campos;
 const containerTelefone = document.getElementById('telefones-container');
 const containerEmail = document.getElementById('emails-container');
+const idProduto = [];
+const idCL = [];
+const idAnuncio = [];
+let parametros;
+let idFormaAnuncio
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 // -------------------- Máscara e validação de telefone --------------------
@@ -393,7 +398,6 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                 tipoTraduzido: textoTipoTraduzido
             };
         });
-        console.log(telefones)
 
         const telefonesEnvio = telefones.map(t => ({
             numero: limparTelefoneFormatado(t.numero),
@@ -407,9 +411,11 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
 
         const produtoSolicitado = document.getElementById('produto');
+        idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
         const aiesecProxima = document.getElementById('aiesec');
+        idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value)
         const meioDivulgacao = document.getElementById('conheceu');
-
+        idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value)
         const dados = `
         Nome: ${nome}
 
@@ -436,37 +442,70 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         const botaoConfirmar = document.getElementById("botaoConfirmar");
 
         //Se o usuário clicar em Confirmar, vai para a função da lógica de envio
-        botaoConfirmar.addEventListener("click", function (e) {
+        botaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+            mostrarSpinner();
 
-            const tituloModal = document.getElementById("exampleModalLongTitle");
+            try {
+                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        sobrenome,
+                        emails: emailsEnvio,
+                        telefones: telefonesEnvio,
+                        dataNascimento: inputISO.value,
+                        idProduto: idProduto[0],
+                        idComite: idCL[0],
+                        idCategoria: idAnuncio[0],
+                        idAutorizacao: "1",
+                        idAnuncio: idFormaAnuncio[0],
+                        tag: parametros.campanha
+                    }),
+                });
 
-            const botaoRemover = document.getElementById("botaoCancelar");
-            botaoRemover.style.display = 'none';
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP! Status: ${response.status}`);
+                }
 
-            document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
-            tituloModal.textContent = "Dados enviados com sucesso!"
+                esconderSpinner();
 
-            botaoConfirmar.textContent = "Ok"
+                // Atualiza o modal para mensagem de sucesso
+                const tituloModal = document.getElementById("exampleModalLongTitle");
+                const botaoRemover = document.getElementById("botaoCancelar");
+                const botaoFechar = document.getElementById("botaoFechar");
 
-            //Caso a pessoa click em OK, recarrega a página e reseta o forms
-            botaoConfirmar.addEventListener("click", function (e) {
+                botaoRemover.style.display = "none";
+                tituloModal.textContent = "Dados enviados com sucesso!";
+                document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
+                botaoConfirmar.textContent = "Ok";
 
-                forms = document.getElementById("meuForm");
-                forms.reset();
-                location.reload();
-            });
+                // 🧠 Remove o listener anterior substituindo o botão por um clone
+                const novoBotao = botaoConfirmar.cloneNode(true);
+                botaoConfirmar.parentNode.replaceChild(novoBotao, botaoConfirmar);
 
-            const botaoFechar = document.getElementById("botaoFechar");
-            botaoFechar.addEventListener("click", function (e) {
+                // Novo comportamento — agora o click só recarrega e reseta
+                novoBotao.addEventListener("click", function () {
+                    const forms = document.getElementById("meuForm");
+                    forms.reset();
+                    location.reload();
+                });
 
-                forms = document.getElementById("meuForm");
-                forms.reset();
-                location.reload();
-            });
+                // Mesmo comportamento para o botão de fechar
+                botaoFechar.addEventListener("click", function () {
+                    const forms = document.getElementById("meuForm");
+                    forms.reset();
+                    location.reload();
+                });
 
-            // this.submit(); // Removido para simular envio sem recarregar a página
+            } catch (erro) {
+                console.error("Erro ao enviar dados:", erro);
+                esconderSpinner();
+            }
+        });
 
-        })
 
 
     } else {
@@ -480,6 +519,66 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
     }
 });
 
+// ============================================================================
+// -------------------- FUNÇÕES DE CONTROLE DO SPINNER ------------------------
+// ============================================================================
+
+/**
+ * Exibe um spinner de carregamento centralizado na tela.
+ * 
+ * - Cria dinamicamente o elemento HTML do spinner (não precisa existir no HTML).
+ * - Bloqueia a interação com o fundo (usando overlay sem interferir no Bootstrap).
+ * - Pode ser reutilizado em qualquer parte do código.
+ */
+function mostrarSpinner() {
+    // Verifica se já existe um spinner ativo para evitar duplicação
+    if (document.getElementById('spinner-overlay')) return;
+
+    // Cria o overlay escuro
+    const overlay = document.createElement('div');
+    overlay.id = 'spinner-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0, 0, 0, 0.4)';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.zIndex = '2000'; // acima do modal
+
+    // Cria o spinner em si
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner-border';
+    spinner.role = 'status';
+
+    // Cria o texto de carregamento
+    const texto = document.createElement('p');
+    texto.textContent = 'Enviando dados, aguarde...';
+    texto.style.color = '#fff';
+    texto.style.marginTop = '15px';
+    texto.style.fontSize = '1.1rem';
+    texto.style.fontWeight = '500';
+
+    // Adiciona ao overlay
+    overlay.appendChild(spinner);
+    overlay.appendChild(texto);
+
+    // Insere o overlay no body
+    document.body.appendChild(overlay);
+}
+
+/**
+ * Remove o spinner da tela, caso esteja visível.
+ * 
+ * - É seguro chamar várias vezes (faz checagem antes de remover).
+ */
+function esconderSpinner() {
+    const overlay = document.getElementById('spinner-overlay');
+    if (overlay) overlay.remove();
+}
 
 
 // Função genérica para traduzir palavras usando LibreTranslate
@@ -607,7 +706,7 @@ async function preencherDropdown() {
 
                 if (curr.status == "active") {
 
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -616,10 +715,20 @@ async function preencherDropdown() {
             []
         )
 
-        todosProdutos.forEach(produto => {
-            const newOption = document.createElement('option');
+        const siglaProduto = ["gv", "gta", "gte"]
+        parametros = await ParamentroURL();
+        const indiceSigla = siglaProduto.indexOf(parametros.tipoIntercambio);
+
+        todosProdutos.forEach((produto, index) => {
+            const newOption = document.createElement("option");
             newOption.value = produto.id;
             newOption.textContent = produto.text;
+
+            // Se o índice da sigla for igual ao índice do produto
+            if (index === indiceSigla) {
+                newOption.selected = true;
+            }
+
             dropdown.appendChild(newOption);
         });
 
@@ -636,11 +745,12 @@ async function preencherDropdown() {
         const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
         const aiesecs = aiesecProx.config.settings.options;
 
+
         var todasAiesecs = aiesecs.reduce(
             function (prev, curr) {
 
                 if (curr.status == "active") {
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -648,11 +758,45 @@ async function preencherDropdown() {
             },
             []
         )
+        const escritorios = [
+            "AB",  // ABC
+            "AJ",  // ARACAJU
+            "BA",  // Bauru
+            "BH",  // BELO HORIZONTE
+            "BS",  // BRASÍLIA
+            "CT",  // CURITIBA
+            "FL",  // FLORIANÓPOLIS
+            "FR",  // FRANCA
+            "FO",  // FORTALEZA
+            "JP",  // JOÃO PESSOA
+            "LM",  // LIMEIRA
+            "MZ",  // MACEIÓ
+            "MN",  // MANAUS
+            "MA",  // MARINGÁ
+            "PA",  // PORTO ALEGRE
+            "RC",  // RECIFE
+            "RJ",  // RIO DE JANEIRO
+            "SS",  // SALVADOR
+            "SM",  // SANTA MARIA
+            "GV",  // SÃO PAULO UNIDADE GETÚLIO VARGAS
+            "MK",  // SÃO PAULO UNIDADE MACKENZIE
+            "US",  // SÃO PAULO UNIDADE USP
+            "SO",  // SOROCABA
+            "UB",  // UBERLÂNDIA
+            "VT",  // VITÓRIA
+            "MC" // BRASIL (NACIONAL)
+        ];
+        const indiceSiglaCL = escritorios.indexOf(parametros.cl);
 
-        todasAiesecs.forEach(aiesec => {
+
+        todasAiesecs.forEach((aiesec, index) => {
             const newOption = document.createElement('option');
             newOption.value = aiesec.id;
             newOption.textContent = aiesec.text;
+            // Se o índice da sigla for igual ao índice do produto
+            if (index === indiceSiglaCL) {
+                newOption.selected = true;
+            }
             dropdown_AiesecProx.appendChild(newOption);
         });
 
@@ -676,7 +820,7 @@ async function preencherDropdown() {
             function (prev, curr) {
 
                 if (curr.status == "active") {
-                    return [...prev, curr];
+                    return [...prev, { id: curr.id, text: curr.text }];
                 }
 
                 return [...prev]
@@ -684,11 +828,29 @@ async function preencherDropdown() {
             },
             []
         )
+        function slugify(texto) {
+            return texto
+                .toLowerCase()                      // tudo minúsculo
+                .normalize("NFD")                   // separa acentos
+                .replace(/[\u0300-\u036f]/g, "")    // remove acentos
+                .replace(/[^a-z0-9 -]/g, "")        // mantém hífen, remove outros especiais
+                .trim()                              // remove espaços no início/fim
+                .replace(/\s+/g, "-")               // substitui espaços por hífen
+                .replace(/-+/g, "-");               // remove múltiplos hífens consecutivos
+        }
 
-        todasOpcoes_Como_Conheceu.forEach(opcoes => {
+
+        const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
+        const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
+
+
+        todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
             const newOption = document.createElement('option');
             newOption.value = opcoes.id;
             newOption.textContent = opcoes.text;
+            if (index === indiceComoConheceuAiesec) {
+                newOption.selected = true;
+            }
             dropdown_Como_Conheceu.appendChild(newOption);
         });
 
@@ -698,9 +860,49 @@ async function preencherDropdown() {
         dropdown_Como_Conheceu.removeAttribute("disabled");
 
 
+
+
+
+        const tipoAnuncio = campos.find(field => field.label === "Como?");
+        const opçoes_Tipo_Anuncio = tipoAnuncio.config.settings.options;
+
+        var todasopçoes_Tipo_Anuncio = opçoes_Tipo_Anuncio.reduce(
+            function (prev, curr) {
+
+                if (curr.status == "active") {
+                    return [...prev, { id: curr.id, text: curr.text }];
+                }
+
+                return [...prev]
+
+            },
+            []
+        )
+        idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.text === parametros.formaAnuncio).map(opcoes => opcoes.id);
+
+
+
     } catch (error) {
         console.error('Erro ao buscar dados:', error);
     }
+}
+
+async function ParamentroURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    const cl = (params.get("utm_term") || "").toUpperCase();
+    const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
+    const campanha = decodeURIComponent(params.get("utm_campaign") || "");
+    const anuncio = (params.get("utm_source") || "").toLowerCase();
+    const formaAnuncio = (params.get("utm_medium") || "").toLowerCase();
+
+    return {
+        cl,
+        tipoIntercambio,
+        campanha,
+        anuncio,
+        formaAnuncio,
+    };
 }
 
 preencherDropdown();
