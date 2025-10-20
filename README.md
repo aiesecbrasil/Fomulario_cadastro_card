@@ -18,7 +18,7 @@ Utilizado para **contornar o bloqueio de CORS** (*Cross-Origin Resource Sharing*
 Também é responsável pela **validação e envio seguro dos dados** ao Google Apps Script. 
 
 ### ☁️ Google Apps Script
-Responsável por **receber e armazenar os dados enviados pelo formulário**, automatizando o registro e **facilitando o acompanhamento dos cadastros em planilhas do Google**.
+Responsável por **receber e armazenar os dados enviados pelo formulário**, automatizando o registro e **facilitando o acompanhamento dos cadastros**.
 Além disso, realiza a **integração com o CRM Podio**, permitindo que o processo de gestão dos leads ocorra de forma **dinâmica e totalmente automatizada**.
 
 
