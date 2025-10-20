@@ -515,6 +515,13 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         Por favor, corrija os erros e tente novamente.
         ${camposErro.map(campo => `- ${campo}`).join('\n')}`;
         const myModal = new bootstrap.Modal(document.getElementById('exampleModalLong'));
+        const botaoEnviar = document.getElementById("botaoConfirmar");
+        botaoEnviar.style.display = 'none';
+        botaoEnviar.disabled;
+        
+        const botaoRemover = document.getElementById("botaoCancelar");
+        botaoRemover.textContent = "Corrigir";
+
         myModal.show();
     }
 });
