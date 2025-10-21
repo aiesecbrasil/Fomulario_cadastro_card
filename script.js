@@ -468,7 +468,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             mostrarSpinner();
 
             try {
-                const response = await fetch("https://baziAiesec1.pythonanywhere.com/adicionar-card", {
+                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -530,10 +530,10 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
                 botaoEnviar.style.display = 'none';
                 botaoEnviar.disabled = true;
-                botaoRemover.textContent = "Corrigir";
+                botaoRemover.textContent = "Recarregar";
 
                 myModal.show();
-                
+
                 botaoRemover.addEventListener("click", () => {
                     document.getElementById("meuForm").reset();
                     location.reload();
