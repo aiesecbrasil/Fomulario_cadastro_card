@@ -88,8 +88,8 @@ function validarEmailComProvedor(input) {
         const dominio = valor.split('@')[1].toLowerCase();
 
         if (!provedores.includes(dominio)) {
-            erro.textContent = "E-mail válido, mas provedor não reconhecido.";
-            camposErro.push("E-mail válido, mas provedor não reconhecido.")
+            erro.textContent = "Por favor, use um e-mail de provedor comum (ex: gmail.com, hotmail.com, icloud.com, outlook.com)";
+            camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)")
         } else {
             erro.textContent = ""; // Tudo certo
         }
@@ -326,9 +326,9 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
             const dominio = valor.split('@')[1].toLowerCase();
             if (!provedores.includes(dominio)) {
-                document.getElementById('erro-email').textContent = "E-mail válido, mas provedor não reconhecido.";
+                document.getElementById('erro-email').textContent = "Use um e-mail de provedor comum (ex: gmail.com, hotmail.com, icloud.com, outlook.com)";
                 valido = false;
-                camposErro.push("E-mail válido, mas provedor não reconhecido.");
+                camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)");
             } else {
                 document.getElementById('erro-email').textContent = "";
             }
@@ -524,9 +524,13 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         const botaoEnviar = document.getElementById("botaoConfirmar");
         const botaoRemover = document.getElementById("botaoCancelar");
 
-        document.getElementById("DadosAqui").textContent = `Informação Incorreta
+        const tituloModal = document.getElementById("exampleModalLongTitle");
 
-        Por favor, corrija os erros e tente novamente.
+        tituloModal.textContent = "Dados incorretos.";
+
+
+        document.getElementById("DadosAqui").textContent = `Por favor, corrija os erros e tente novamente.
+
         ${camposErro.map(campo => `- ${campo}`).join('\n')}`;
 
         botaoEnviar.style.display = 'none';
@@ -705,9 +709,35 @@ async function preencherDropdown() {
 
         //Verfica se o dado campos é não nulo
         if (!campos) {
+
+            // 🔻 Modal de erro
+            const modal = document.getElementById('exampleModalLong');
+            const myModal = new bootstrap.Modal(modal);
+            const botaoEnviar = document.getElementById("botaoConfirmar");
+            const botaoRemover = document.getElementById("botaoCancelar");
+
+            const tituloModal = document.getElementById("exampleModalLongTitle");
+
+            tituloModal.textContent = "Erro de conexão";
+
+
+            document.getElementById("DadosAqui").textContent = `Por favor, recarregue a página`
+
+            botaoEnviar.style.display = 'none';
+            botaoEnviar.disabled = true;
+            botaoRemover.textContent = "Recarregar";
+
+            myModal.show();
+
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
-            return;
+
+            botaoRemover.addEventListener("click", () => {
+                    document.getElementById("meuForm").reset();
+                    location.reload();
+                }, { once: true });
+            
         }
+
         addEmail();
         addTelefone();
 
