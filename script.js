@@ -466,9 +466,9 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
             e.preventDefault();
             mostrarSpinner();
-            
+
             try {
-                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                const response = await fetch("https://baziAiesec1.pythonanywhere.com/adicionar-card", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -514,6 +514,30 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             } catch (erro) {
                 console.error("Erro ao enviar dados:", erro);
                 esconderSpinner();
+                // 🔻 Modal de erro
+                const modal = document.getElementById('exampleModalLong');
+                const myModal = new bootstrap.Modal(modal);
+                const botaoEnviar = document.getElementById("botaoConfirmar");
+                const botaoRemover = document.getElementById("botaoCancelar");
+
+                const tituloModal = document.getElementById("exampleModalLongTitle");
+
+                tituloModal.textContent = "Falha ao Enviar";
+
+
+                document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br`;
+
+
+                botaoEnviar.style.display = 'none';
+                botaoEnviar.disabled = true;
+                botaoRemover.textContent = "Corrigir";
+
+                myModal.show();
+                
+                botaoRemover.addEventListener("click", () => {
+                    document.getElementById("meuForm").reset();
+                    location.reload();
+                }, { once: true });
             }
         });
 
@@ -721,8 +745,8 @@ async function preencherDropdown() {
             tituloModal.textContent = "Erro de conexão";
 
 
-            document.getElementById("DadosAqui").textContent = `Por favor, recarregue a página`
-
+            document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.
+        Caso o erro persista contate o email: contato@aiesec.org.br`;
             botaoEnviar.style.display = 'none';
             botaoEnviar.disabled = true;
             botaoRemover.textContent = "Recarregar";
@@ -732,10 +756,10 @@ async function preencherDropdown() {
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
 
             botaoRemover.addEventListener("click", () => {
-                    document.getElementById("meuForm").reset();
-                    location.reload();
-                }, { once: true });
-            
+                document.getElementById("meuForm").reset();
+                location.reload();
+            }, { once: true });
+
         }
 
         addEmail();
@@ -932,6 +956,31 @@ async function preencherDropdown() {
 
 
     } catch (error) {
+        // 🔻 Modal de erro
+        const modal = document.getElementById('exampleModalLong');
+        const myModal = new bootstrap.Modal(modal);
+        const botaoEnviar = document.getElementById("botaoConfirmar");
+        const botaoRemover = document.getElementById("botaoCancelar");
+
+        const tituloModal = document.getElementById("exampleModalLongTitle");
+
+        tituloModal.textContent = "Erro de conexão";
+
+
+        document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.
+    Caso o erro persista contate o email: contato@aiesec.org.br`;
+        botaoEnviar.style.display = 'none';
+        botaoEnviar.disabled = true;
+        botaoRemover.textContent = "Recarregar";
+
+        myModal.show();
+
+        console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
+
+        botaoRemover.addEventListener("click", () => {
+            document.getElementById("meuForm").reset();
+            location.reload();
+        }, { once: true });
         console.error('Erro ao buscar dados:', error);
     }
 }
