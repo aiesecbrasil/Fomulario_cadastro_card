@@ -709,9 +709,35 @@ async function preencherDropdown() {
 
         //Verfica se o dado campos é não nulo
         if (!campos) {
+
+            // 🔻 Modal de erro
+            const modal = document.getElementById('exampleModalLong');
+            const myModal = new bootstrap.Modal(modal);
+            const botaoEnviar = document.getElementById("botaoConfirmar");
+            const botaoRemover = document.getElementById("botaoCancelar");
+
+            const tituloModal = document.getElementById("exampleModalLongTitle");
+
+            tituloModal.textContent = "Erro de conexão";
+
+
+            document.getElementById("DadosAqui").textContent = `Por favor, recarregue a página`
+
+            botaoEnviar.style.display = 'none';
+            botaoEnviar.disabled = true;
+            botaoRemover.textContent = "Recarregar";
+
+            myModal.show();
+
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
-            return;
+
+            botaoRemover.addEventListener("click", () => {
+                    document.getElementById("meuForm").reset();
+                    location.reload();
+                }, { once: true });
+            
         }
+
         addEmail();
         addTelefone();
 
