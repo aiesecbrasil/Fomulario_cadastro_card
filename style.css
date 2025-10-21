@@ -306,9 +306,18 @@ button.loading::after {
     margin: 20px;
     position: relative;
     left: 33%;
-    margin-top: 20px;
+    margin-top: 50px;
     color: #004a99;
     font-weight: 500;
+}
 
-
+@media (max-width: 768px) {
+    .copyright{
+        margin: 20px;
+        position: relative;
+        left: 15%;
+        margin-top: 50px;
+        color: #004a99;
+        font-weight: 500;
+    }
 }

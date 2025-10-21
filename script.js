@@ -482,7 +482,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                         idCategoria: idAnuncio[0],
                         idAutorizacao: "1",
                         idAnuncio: idFormaAnuncio[0],
-                        tag: parametros.campanha
+                        tag: slugify(parametros.campanha)
                     }),
                 });
 
@@ -903,14 +903,16 @@ async function preencherDropdown() {
         )
         function slugify(texto) {
             return texto
-                .toLowerCase()                      // tudo minúsculo
-                .normalize("NFD")                   // separa acentos
-                .replace(/[\u0300-\u036f]/g, "")    // remove acentos
-                .replace(/[^a-z0-9 -]/g, "")        // mantém hífen, remove outros especiais
-                .trim()                              // remove espaços no início/fim
-                .replace(/\s+/g, "-")               // substitui espaços por hífen
-                .replace(/-+/g, "-");               // remove múltiplos hífens consecutivos
+                .toLowerCase()                       // tudo minúsculo
+                .normalize("NFD")                    // separa letras dos acentos
+                .replace(/[\u0300-\u036f]/g, "")     // remove acentos
+                .replace(/\s+/g, "-")                // substitui espaços por hífen
+                .replace(/[^a-z0-9-/]/g, "")         // mantém letras, números, hífen e barra
+                .replace(/-+/g, "-")                 // evita múltiplos hífens
+                .replace(/\/+/g, "/")                // evita múltiplas barras
+                .replace(/^[-/]+|[-/]+$/g, "");      // remove hífens ou barras no início/fim
         }
+
 
 
         const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
