@@ -906,19 +906,6 @@ async function preencherDropdown() {
             },
             []
         )
-        function slugify(texto) {
-            return texto
-                .toLowerCase()                       // tudo minúsculo
-                .normalize("NFD")                    // separa letras dos acentos
-                .replace(/[\u0300-\u036f]/g, "")     // remove acentos
-                .replace(/\s+/g, "-")                // substitui espaços por hífen
-                .replace(/[^a-z0-9-/]/g, "")         // mantém letras, números, hífen e barra
-                .replace(/-+/g, "-")                 // evita múltiplos hífens
-                .replace(/\/+/g, "/")                // evita múltiplas barras
-                .replace(/^[-/]+|[-/]+$/g, "");      // remove hífens ou barras no início/fim
-        }
-
-
 
         const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
@@ -1008,6 +995,17 @@ async function ParamentroURL() {
         anuncio,
         formaAnuncio,
     };
+}
+function slugify(texto) {
+    return texto
+        .toLowerCase()                       // tudo minúsculo
+        .normalize("NFD")                    // separa letras dos acentos
+        .replace(/[\u0300-\u036f]/g, "")     // remove acentos
+        .replace(/\s+/g, "-")                // substitui espaços por hífen
+        .replace(/[^a-z0-9-/]/g, "")         // mantém letras, números, hífen e barra
+        .replace(/-+/g, "-")                 // evita múltiplos hífens
+        .replace(/\/+/g, "/")                // evita múltiplas barras
+        .replace(/^[-/]+|[-/]+$/g, "");      // remove hífens ou barras no início/fim
 }
 
 preencherDropdown();
