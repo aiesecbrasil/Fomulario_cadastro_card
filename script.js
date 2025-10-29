@@ -1,11 +1,55 @@
 let campos;
 const containerTelefone = document.getElementById('telefones-container');
 const containerEmail = document.getElementById('emails-container');
-const idProduto = [];
-const idCL = [];
-const idAnuncio = [];
+const siglaProduto = [
+    'gv', // Voluntário Global
+    'gtast', // Talento Global Short Term
+    'gtalt', // Talento Global Mid e Long Term
+    'gte' // Professor Global
+];
+const escritorios = [
+    "AB",  // ABC
+    "AJ",  // ARACAJU
+    "BA",  // Bauru
+    "BH",  // BELO HORIZONTE
+    "BS",  // BRASÍLIA
+    "CT",  // CURITIBA
+    "FL",  // FLORIANÓPOLIS
+    "FR",  // FRANCA
+    "FO",  // FORTALEZA
+    "JP",  // JOÃO PESSOA
+    "LM",  // LIMEIRA
+    "MZ",  // MACEIÓ
+    "MN",  // MANAUS
+    "MA",  // MARINGÁ
+    "PA",  // PORTO ALEGRE
+    "RC",  // RECIFE
+    "RJ",  // RIO DE JANEIRO
+    "SS",  // SALVADOR
+    "SM",  // SANTA MARIA
+    "GV",  // SÃO PAULO UNIDADE GETÚLIO VARGAS
+    "MK",  // SÃO PAULO UNIDADE MACKENZIE
+    "US",  // SÃO PAULO UNIDADE USP
+    "SO",  // SOROCABA
+    "UB",  // UBERLÂNDIA
+    "VT",  // VITÓRIA
+    "MC" // BRASIL (NACIONAL)
+];
+let idProduto = [];
+let idCL = [];
+let idAnuncio = [];
+let listaAnuncio;
+let indiceComoConheceuAiesec;
+let indiceSiglaCL;
+let indiceSigla;
 let parametros;
-let idFormaAnuncio
+let idFormaAnuncio;
+let produtoSolicitado;
+let aiesecProxima;
+let meioDivulgacao;
+let todosProdutos;
+let todasAiesecs;
+let todasOpcoes_Como_Conheceu;
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 
@@ -53,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // aqui você já pode chamar funções que dependem dos parâmetros
         criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio);
 
-        preencherDropdown();
+        preencherDropdown(parametros);
     } catch (error) {
         // 🔻 Modal de erro
         const modal = document.getElementById('exampleModalLong');
@@ -118,12 +162,12 @@ function criarCampos(programa, cl, anuncio) {
         //____________________________Lógica Produtos_____________________________________________________
 
         // Encontra os produtos dentro dos objetos retornado pela API
-        const produtos = campos.find(field => field.label === "Produto");
+        let produtos = campos.find(field => field.label === "Produto");
         const opcoesDeProduto = produtos.config.settings.options;
 
         // Colocando todos os produtos em uma variável chamada todosProdutos
         // A função reduce serve para fazer chamada recursiva de uma função em todos os elementos do array
-        var todosProdutos = opcoesDeProduto.reduce(
+        todosProdutos = opcoesDeProduto.reduce(
             function (prev, curr) {
 
                 if (curr.status == "active") {
@@ -137,14 +181,7 @@ function criarCampos(programa, cl, anuncio) {
             []
         )
 
-        const siglaProduto = [
-            'gv', // Voluntário Global
-            'gtast', // Talento Global Short Term
-            'gtalt', // Talento Global Mid e Long Term
-            'gte' // Professor Global
-        ];
-
-        const indiceSigla = siglaProduto.indexOf(programa);
+        indiceSigla = siglaProduto.indexOf(programa);
 
         todosProdutos.forEach((produto, index) => {
             const newOption = document.createElement("option");
@@ -200,7 +237,7 @@ function criarCampos(programa, cl, anuncio) {
         const aiesecs = aiesecProx.config.settings.options;
 
 
-        var todasAiesecs = aiesecs.reduce(
+        todasAiesecs = aiesecs.reduce(
             function (prev, curr) {
 
                 if (curr.status == "active") {
@@ -212,35 +249,8 @@ function criarCampos(programa, cl, anuncio) {
             },
             []
         )
-        const escritorios = [
-            "AB",  // ABC
-            "AJ",  // ARACAJU
-            "BA",  // Bauru
-            "BH",  // BELO HORIZONTE
-            "BS",  // BRASÍLIA
-            "CT",  // CURITIBA
-            "FL",  // FLORIANÓPOLIS
-            "FR",  // FRANCA
-            "FO",  // FORTALEZA
-            "JP",  // JOÃO PESSOA
-            "LM",  // LIMEIRA
-            "MZ",  // MACEIÓ
-            "MN",  // MANAUS
-            "MA",  // MARINGÁ
-            "PA",  // PORTO ALEGRE
-            "RC",  // RECIFE
-            "RJ",  // RIO DE JANEIRO
-            "SS",  // SALVADOR
-            "SM",  // SANTA MARIA
-            "GV",  // SÃO PAULO UNIDADE GETÚLIO VARGAS
-            "MK",  // SÃO PAULO UNIDADE MACKENZIE
-            "US",  // SÃO PAULO UNIDADE USP
-            "SO",  // SOROCABA
-            "UB",  // UBERLÂNDIA
-            "VT",  // VITÓRIA
-            "MC" // BRASIL (NACIONAL)
-        ];
-        const indiceSiglaCL = escritorios.indexOf(cl);
+
+        indiceSiglaCL = escritorios.indexOf(cl);
 
 
         todasAiesecs.forEach((aiesec, index) => {
@@ -297,7 +307,7 @@ function criarCampos(programa, cl, anuncio) {
         const opçoes_Como_Conheceu = comoConheceu.config.settings.options;
 
 
-        var todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce(
+        todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce(
             function (prev, curr) {
 
                 if (curr.status == "active") {
@@ -310,8 +320,8 @@ function criarCampos(programa, cl, anuncio) {
             []
         )
 
-        const listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
-        const indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
+        listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
+        indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
 
 
         todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
@@ -684,14 +694,28 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         document.getElementById('erro-nascimento').textContent = "";
     }
 
-    // Selects
     ['produto', 'aiesec', 'conheceu'].forEach(id => {
-        if (document.getElementById(id).value === "") {
+        const campo = document.getElementById(id);
+
+        // Se o campo não existe, consideramos "válido"
+        if (!campo) return;
+
+        if (campo.value === "") {
             document.getElementById('erro-' + id).textContent = "Selecione uma opção.";
             valido = false;
-            camposErro.push(`Selecione uma opção de ${id}.`)
+            camposErro.push(`Selecione uma opção de ${id}.`);
         } else {
             document.getElementById('erro-' + id).textContent = "";
+        }
+        if (campo && campo.value !== "" && id === "produto") {
+            produtoSolicitado = document.getElementById('produto');
+            idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
+        } else if (campo && campo.value !== "" && id === "aiesec") {
+            aiesecProxima = document.getElementById('aiesec');
+            idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value);
+        } else if (campo && campo.value !== "" && id === "conheceu") {
+            meioDivulgacao = document.getElementById('conheceu');
+            idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value);
         }
     });
 
@@ -742,31 +766,38 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             tipo: e.tipo
         }));
 
-        const produtoSolicitado = document.getElementById('produto');
-        idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
-        const aiesecProxima = document.getElementById('aiesec');
-        idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value);
-        const meioDivulgacao = document.getElementById('conheceu');
-        idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value);
 
-        const dados = `
-    Nome: ${nome}
+        let dados = `
+Nome: ${nome}\n
+Sobrenome: ${sobrenome}\n
+Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}\n
+Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}\n
+Data de Nascimento: ${inputVisivel.value}`;
 
-    Sobrenome: ${sobrenome}
+        // Adiciona só se o campo existir
+        if (produtoSolicitado) {
+            dados += `
 
-    Emails: ${emails.map((email) => `${email.email} (${email.tipoTraduzido})`).join('\n\t\t')}
+Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}`;
+        }
 
-    Telefones: ${telefones.map((telefone) => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\n\t\t')}
+        if (aiesecProxima) {
+            dados += `
 
-    Data de Nascimento: ${inputVisivel.value}
+AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}`;
+        }
 
-    Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}
+        if (meioDivulgacao) {
+            dados += `
 
-    AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}
+Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}`;
+        }
 
-    Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}
+        // Sempre presente
+        dados += `
 
-    Aceitou Política: Sim`;
+Aceitou Política: Sim`;
+
 
         // Mostra os dados no Modal
         const modal = document.getElementById('exampleModalLong');
@@ -809,6 +840,19 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
                         tag: slugify(parametros.campanha)
                     }),
                 });
+                console.log({
+                    nome,
+                    sobrenome,
+                    emails: emailsEnvio,
+                    telefones: telefonesEnvio,
+                    dataNascimento: inputISO.value,
+                    idProduto: idProduto[0][0],
+                    idComite: idCL[0][0],
+                    idCategoria: idAnuncio[0][0],
+                    idAutorizacao: "1",
+                    idAnuncio: idFormaAnuncio[0],
+                    tag: slugify(parametros.campanha)
+                })
 
                 if (!response.ok) throw new Error(`Erro HTTP! Status: ${response.status}`);
 
@@ -984,7 +1028,22 @@ async function traduzirPalavras(palavras) {
 
 
 
-async function preencherDropdown() {
+async function preencherDropdown(parametros) {
+    if (parametros.tipoIntercambio && parametros.cl && parametros.anuncio) {
+        indiceSigla = siglaProduto.indexOf(parametros.tipoIntercambio);
+        indiceSiglaCL = escritorios.indexOf(parametros.cl);
+
+        todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
+        idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
+
+        todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
+        idCL = todasAiesecs.filter((_, index) => index === indiceSiglaCL).map(i => i.id);
+
+        todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
+        listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
+        indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
+        idAnuncio = todasOpcoes_Como_Conheceu.filter((_, index) => index === indiceComoConheceuAiesec).map(i => i.id);
+    }
 
     addEmail();
     addTelefone();
