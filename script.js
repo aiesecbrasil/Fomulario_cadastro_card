@@ -790,8 +790,8 @@ async function preencherDropdown() {
 
         const siglaProduto = [
             'gv', // Voluntário Global
-            'gtas', // Talento Global Short Term
-            'gtaml', // Talento Global Mid e Long Term
+            'gtast', // Talento Global Short Term
+            'gtalt', // Talento Global Mid e Long Term
             'gte' // Professor Global
         ];
         parametros = await ParamentroURL();
