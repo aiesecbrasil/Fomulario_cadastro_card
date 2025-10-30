@@ -1040,7 +1040,7 @@ async function preencherDropdown(parametros) {
 
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         idCL = todasAiesecs.filter((_, index) => index === indiceSiglaCL).map(i => i.id);
-        console.log(campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active").filter((_, index) => index === indiceSiglaCL).map(i => i.id))
+        
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
@@ -1075,7 +1075,7 @@ async function preencherDropdown(parametros) {
 async function ParamentroURL() {
     const params = new URLSearchParams(window.location.search);
     const rota  = slugify((params.get("rota") || ""))
-    const cl = (params.get("utm_term") || "").toLowerCase();
+    const cl = (params.get("utm_term") || "").toUpperCase();
     const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
     const campanha = decodeURIComponent(params.get("utm_campaign") || "");
     const anuncio = (params.get("utm_source") || "").toLowerCase();
