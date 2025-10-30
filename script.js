@@ -848,9 +848,9 @@ Aceitou Política: Sim`;
                     emails: emailsEnvio,
                     telefones: telefonesEnvio,
                     dataNascimento: inputISO.value,
-                    idProduto: idProduto[0][0],
-                    idComite: idCL[0][0],
-                    idCategoria: idAnuncio[0][0],
+                    idProduto: idProduto[0],
+                    idComite: idCL[0],
+                    idCategoria: idAnuncio[0],
                     idAutorizacao: "1",
                     idAnuncio: idFormaAnuncio[0],
                     tag: slugify(parametros.campanha)
