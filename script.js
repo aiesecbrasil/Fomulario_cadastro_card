@@ -1052,7 +1052,7 @@ async function preencherDropdown(parametros) {
         },
         []
     )
-    idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => opcoes.text === parametros.formaAnuncio).map(opcoes => opcoes.id);
+    idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio)).map(opcoes => opcoes.id);
 
 
 
