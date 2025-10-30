@@ -1,4 +1,3 @@
-let campos;
 const containerTelefone = document.getElementById('telefones-container');
 const containerEmail = document.getElementById('emails-container');
 const siglaProduto = [
@@ -35,6 +34,7 @@ const escritorios = [
     "VT",  // VITÓRIA
     "MC" // BRASIL (NACIONAL)
 ];
+let campos;
 let idProduto = [];
 let idCL = [];
 let idAnuncio = [];
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }, { once: true });
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
-        criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio);
+        criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio,parametros.rota);
 
         preencherDropdown(parametros);
     } catch (error) {
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 //---------------------Criar campo se não vinher parâmtro------------------
-function criarCampos(programa, cl, anuncio) {
+function criarCampos(programa, cl, anuncio,rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
     const conheceAiesec = document.getElementById("conheceAiesec");
@@ -190,6 +190,8 @@ function criarCampos(programa, cl, anuncio) {
 
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSigla) {
+                newOption.selected = true;
+            } else if (rota == slugify(produto.text)){
                 newOption.selected = true;
             }
 
@@ -260,6 +262,8 @@ function criarCampos(programa, cl, anuncio) {
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSiglaCL) {
                 newOption.selected = true;
+            }else if (rota == slugify(aiesec.text)){
+                newOption.selected = true;
             }
             dropdown_AiesecProx.appendChild(newOption);
         });
@@ -329,6 +333,8 @@ function criarCampos(programa, cl, anuncio) {
             newOption.value = opcoes.id;
             newOption.textContent = opcoes.text;
             if (index === indiceComoConheceuAiesec) {
+                newOption.selected = true;
+            }else if (rota == slugify(opcoes.text)){
                 newOption.selected = true;
             }
             dropdown_Como_Conheceu.appendChild(newOption);
@@ -1072,8 +1078,8 @@ async function preencherDropdown(parametros) {
 
 async function ParamentroURL() {
     const params = new URLSearchParams(window.location.search);
-
-    const cl = (params.get("utm_term") || "").toUpperCase();
+    const rota  = slugify((params.get("rota") || ""))
+    const cl = (params.get("utm_term") || "").toLowerCase();
     const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
     const campanha = decodeURIComponent(params.get("utm_campaign") || "");
     const anuncio = (params.get("utm_source") || "").toLowerCase();
@@ -1084,6 +1090,7 @@ async function ParamentroURL() {
         campanha,
         anuncio,
         formaAnuncio,
+        rota
     };
 }
 function slugify(texto) {
