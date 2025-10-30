@@ -1040,7 +1040,7 @@ async function preencherDropdown(parametros) {
 
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         idCL = todasAiesecs.filter((_, index) => index === indiceSiglaCL).map(i => i.id);
-        console.log(todasAiesecs)
+        console.log(campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?"))
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
