@@ -842,19 +842,6 @@ Aceitou Política: Sim`;
                         tag: slugify(parametros.campanha)
                     }),
                 });
-                console.log({
-                    nome,
-                    sobrenome,
-                    emails: emailsEnvio,
-                    telefones: telefonesEnvio,
-                    dataNascimento: inputISO.value,
-                    idProduto: idProduto[0],
-                    idComite: idCL[0],
-                    idCategoria: idAnuncio[0],
-                    idAutorizacao: "1",
-                    idAnuncio: idFormaAnuncio[0],
-                    tag: slugify(parametros.campanha)
-                })
 
                 if (!response.ok) throw new Error(`Erro HTTP! Status: ${response.status}`);
 
