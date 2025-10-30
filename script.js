@@ -262,8 +262,6 @@ function criarCampos(programa, cl, anuncio,rota) {
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSiglaCL) {
                 newOption.selected = true;
-            }else if (rota == slugify(aiesec.text)){
-                newOption.selected = true;
             }
             dropdown_AiesecProx.appendChild(newOption);
         });
@@ -333,8 +331,6 @@ function criarCampos(programa, cl, anuncio,rota) {
             newOption.value = opcoes.id;
             newOption.textContent = opcoes.text;
             if (index === indiceComoConheceuAiesec) {
-                newOption.selected = true;
-            }else if (rota == slugify(opcoes.text)){
                 newOption.selected = true;
             }
             dropdown_Como_Conheceu.appendChild(newOption);
