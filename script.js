@@ -419,7 +419,7 @@ function validarEmailComProvedor(input) {
             return;
         }
 
-        // Lista de provedores conhecidos
+        /*// Lista de provedores conhecidos
         const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
         const dominio = valor.split('@')[1].toLowerCase();
 
@@ -428,7 +428,7 @@ function validarEmailComProvedor(input) {
             camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)")
         } else {
             erro.textContent = ""; // Tudo certo
-        }
+        }*/
     });
 }
 // -------------------- Validação de nome/sobrenome --------------------
