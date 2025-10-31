@@ -657,7 +657,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             document.getElementById('erro-email').textContent = "E-mail inválido.";
             valido = false;
             camposErro.push("E-mail Inválido");
-        } else {
+        } /*else {
             // Checa provedor
             const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
             const dominio = valor.split('@')[1].toLowerCase();
@@ -668,7 +668,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             } else {
                 document.getElementById('erro-email').textContent = "";
             }
-        }
+        }*/
     });
 
 
