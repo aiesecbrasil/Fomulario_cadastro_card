@@ -56,7 +56,7 @@ containerTelefone.innerHTML = '';
 document.addEventListener("DOMContentLoaded", async () => {
     parametros = await ParamentroURL(); // aguarda a função assíncrona
     const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
-
+    
     try {
 
         const response = await fetch(url);
@@ -946,7 +946,8 @@ function mostrarSpinner() {
     overlay.style.left = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
-    overlay.style.background = 'rgba(0, 0, 0, 0.4)';
+    overlay.style.background = '#ffffff';
+    overlay.style.opacity = '0.5';
     overlay.style.display = 'flex';
     overlay.style.flexDirection = 'column';
     overlay.style.justifyContent = 'center';
@@ -961,7 +962,7 @@ function mostrarSpinner() {
     // Cria o texto de carregamento
     const texto = document.createElement('p');
     texto.textContent = 'Enviando dados, aguarde...';
-    texto.style.color = '#fff';
+    texto.style.color = 'rgba(0,0,0,0.4)';
     texto.style.marginTop = '15px';
     texto.style.fontSize = '1.1rem';
     texto.style.fontWeight = '500';
