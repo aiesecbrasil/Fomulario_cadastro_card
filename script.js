@@ -946,7 +946,7 @@ function mostrarSpinner() {
     overlay.style.left = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
-    overlay.style.background = 'rgba(255, 255, 255, 1)';
+    overlay.style.background = '#ffffff';
     overlay.style.display = 'flex';
     overlay.style.flexDirection = 'column';
     overlay.style.justifyContent = 'center';
