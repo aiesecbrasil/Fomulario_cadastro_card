@@ -539,6 +539,7 @@ async function addTelefone() {
     // Atualiza botões de remoção
     const botoes = containerTelefone.querySelectorAll('.remove-btn');
     botoes.forEach(btn => (btn.disabled = botoes.length === 1));
+    window.parent.postMessage('campoAdicionado', 'https://aiesec.org.br/');
 }
 
 function removeCampo(botao, tipo) {
