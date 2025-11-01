@@ -494,6 +494,7 @@ async function addEmail() {
     // Atualiza botões de remoção
     const botoes = containerEmail.querySelectorAll('.remove-btn');
     botoes.forEach(btn => (btn.disabled = botoes.length === 1));
+    window.parent.postMessage('campoAdicionado', 'https://aiesec.org.br/');
 }
 
 
