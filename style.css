@@ -186,6 +186,10 @@ h2 {
     top: 200px;
 }
 
+.modal-backdrop{
+    background-color: #F3F4F7;
+}
+
 .modal-title {
 
     font-family: 'Arial', sans-serif;
