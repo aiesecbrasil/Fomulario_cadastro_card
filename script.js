@@ -56,7 +56,7 @@ containerTelefone.innerHTML = '';
 document.addEventListener("DOMContentLoaded", async () => {
     parametros = await ParamentroURL(); // aguarda a função assíncrona
     const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
-    
+
     try {
 
         const response = await fetch(url);
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }, { once: true });
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
-        criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio,parametros.rota);
+        criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio, parametros.rota);
 
         preencherDropdown(parametros);
     } catch (error) {
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 //---------------------Criar campo se não vinher parâmtro------------------
-function criarCampos(programa, cl, anuncio,rota) {
+function criarCampos(programa, cl, anuncio, rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
     const conheceAiesec = document.getElementById("conheceAiesec");
@@ -191,7 +191,7 @@ function criarCampos(programa, cl, anuncio,rota) {
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSigla) {
                 newOption.selected = true;
-            } else if (rota == slugify(produto.text)){
+            } else if (rota == slugify(produto.text)) {
                 newOption.selected = true;
             }
 
@@ -1028,7 +1028,7 @@ async function preencherDropdown(parametros) {
 
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         idCL = todasAiesecs.filter((_, index) => index === indiceSiglaCL).map(i => i.id);
-        
+
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
@@ -1062,7 +1062,7 @@ async function preencherDropdown(parametros) {
 
 async function ParamentroURL() {
     const params = new URLSearchParams(window.location.search);
-    const rota  = slugify((params.get("rota") || ""))
+    const rota = slugify((params.get("rota") || ""))
     const cl = (params.get("utm_term") || "").toUpperCase();
     const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
     const campanha = decodeURIComponent(params.get("utm_campaign") || "");

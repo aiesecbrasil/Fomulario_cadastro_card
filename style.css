@@ -186,7 +186,7 @@ h2 {
     top: 30%;
 }
 
-.modal-backdrop{
+.modal-backdrop {
     background-color: #ffffff;
 }
 
@@ -310,7 +310,7 @@ button.loading::after {
     animation: spin 0.8s linear infinite;
 }
 
-.copyright{
+.copyright {
     margin: 20px;
     position: relative;
     left: 33%;
@@ -320,7 +320,7 @@ button.loading::after {
 }
 
 @media (max-width: 768px) {
-    .copyright{
+    .copyright {
         margin: 20px;
         position: relative;
         left: 15%;
