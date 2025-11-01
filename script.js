@@ -962,7 +962,7 @@ function mostrarSpinner() {
     // Cria o texto de carregamento
     const texto = document.createElement('p');
     texto.textContent = 'Enviando dados, aguarde...';
-    texto.style.color = 'rgba(0, 0, 0, 1)';
+    texto.style.color = '#000';
     texto.style.marginTop = '15px';
     texto.style.fontSize = '1.1rem';
     texto.style.fontWeight = '500';
