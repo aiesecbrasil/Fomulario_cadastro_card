@@ -550,6 +550,7 @@ function removeCampo(botao, tipo) {
     // Remove o campo
     if (container.children.length > 1) {
         container.removeChild(botao.parentNode);
+        window.parent.postMessage('campoRemovido', 'https://aiesec.org.br/');
     }
 
     // Se sobrou apenas 1 campo, desabilita o botão de remoção dele
