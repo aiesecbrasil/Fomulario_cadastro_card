@@ -830,35 +830,35 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         }));
 
         let dados = `
-Nome: ${nome}\n
-Sobrenome: ${sobrenome}\n
-Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}\n
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}\n
-Data de Nascimento: ${inputVisivel.value}\n`;
+Nome: ${nome}<br>
+Sobrenome: ${sobrenome}<br>
+Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}<br>
+Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}<br>
+Data de Nascimento: ${inputVisivel.value}<br>`;
 
         // Adiciona só se o campo existir
         if (produtoSolicitado) {
             dados += `
 
-Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}\n`;
+Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
         if (aiesecProxima) {
             dados += `
 
-AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}\n`;
+AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}<br>`;
         }
 
         if (meioDivulgacao) {
             dados += `
 
-Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}\n`;
+Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}<br>`;
         }
 
         // Sempre presente
         dados += `
 
-Aceitou Política: Sim\n`;
+Aceitou Política: Sim`;
 
         // Mostra os dados no Modal
         const modal = document.getElementById('exampleModalLong');
@@ -874,7 +874,7 @@ Aceitou Política: Sim\n`;
         botaoConfirmar.textContent = "Confirmar";
         botaoRemover.textContent = "Cancelar";
 
-        document.getElementById("DadosAqui").textContent = dados.replace(/\n/g, "<br>");;
+        document.getElementById("DadosAqui").textContent = dados;
         myModal.show();
 
         // Remove listener antigo e adiciona o novo
