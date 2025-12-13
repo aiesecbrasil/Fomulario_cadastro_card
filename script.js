@@ -832,8 +832,8 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         let dados = `
 Nome: ${nome}\n
 Sobrenome: ${sobrenome}\n
-Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\n')}
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\n')}
+Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}\n
+Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}\n
 Data de Nascimento: ${inputVisivel.value}`;
 
         // Adiciona só se o campo existir
