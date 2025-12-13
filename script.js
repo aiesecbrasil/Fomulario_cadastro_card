@@ -829,8 +829,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             tipo: e.tipo
         }));
 
-        let dados = `
-Nome: ${nome}<br>
+        let dados = `Nome: ${nome}<br>
 Sobrenome: ${sobrenome}<br>
 Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}<br>
 Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}<br>
