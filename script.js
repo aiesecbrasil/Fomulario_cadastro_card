@@ -874,7 +874,7 @@ Aceitou Política: Sim`;
         botaoConfirmar.textContent = "Confirmar";
         botaoRemover.textContent = "Cancelar";
 
-        document.getElementById("DadosAqui").textContent = dados;
+        document.getElementById("DadosAqui").innerHTML = dados;
         myModal.show();
 
         // Remove listener antigo e adiciona o novo
