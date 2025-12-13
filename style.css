@@ -187,7 +187,7 @@ h2 {
     /* força quebra */
     word-wrap: break-word;
     /* compatibilidade */
-    white-space: normal;
+    white-space: pre-wrap;
     /* permite quebra */
 }
 
