@@ -883,77 +883,83 @@ Aceitou Política: Sim`;
 
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
             e.preventDefault();
+            // Fecha o modal de confirmação
+            myModal.hide();
             mostrarSpinner();
+            // Aguarda o modal terminar de fechar
+            modal.addEventListener('hidden.bs.modal', async function handler() {
+                modal.removeEventListener('hidden.bs.modal', handler);
+                try {
+                    const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            nome,
+                            sobrenome,
+                            emails: emailsEnvio,
+                            telefones: telefonesEnvio,
+                            dataNascimento: inputISO.value,
+                            idProduto: idProduto[0],
+                            idComite: idCL[0],
+                            idCategoria: idAnuncio[0],
+                            idAutorizacao: "1",
+                            idAnuncio: idFormaAnuncio[0],
+                            tag: slugify(parametros.campanha)
+                        }),
+                    });
 
-            try {
-                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        nome,
-                        sobrenome,
-                        emails: emailsEnvio,
-                        telefones: telefonesEnvio,
-                        dataNascimento: inputISO.value,
-                        idProduto: idProduto[0],
-                        idComite: idCL[0],
-                        idCategoria: idAnuncio[0],
-                        idAutorizacao: "1",
-                        idAnuncio: idFormaAnuncio[0],
-                        tag: slugify(parametros.campanha)
-                    }),
-                });
-
-                if (!response.ok) {
-                    let backend = null;
-                    try { backend = await response.json(); } catch (_) { backend = null; }
-                    throw { status: response.status, backend };
-                }
-
-                esconderSpinner();
-
-                showModal({
-                    title: "Dados enviados com sucesso!",
-                    message:
-                        "Em breve entraremos em contato com você",
-                    type: "success",
-                    showCancel: false,
-                    confirmText: "Ok",
-                    onConfirm: () => {
-                        document.getElementById("meuForm").reset();
-                        location.reload();
+                    if (!response.ok) {
+                        let backend = null;
+                        try { backend = await response.json(); } catch (_) { backend = null; }
+                        throw { status: response.status, backend };
                     }
-                });
 
-            } catch (err) {
-                esconderSpinner();
+                    esconderSpinner();
 
-                showModal({
-                    title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
-                    message:
-                        err?.status === 400
-                            ? ""
-                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
-                    type: "error",
-                    showConfirm: false,
-                    showCancel: true,
-                    cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
-                    backendError: err?.backend,
-                    onCancel:
-                        err?.status === 400
-                            ? undefined
-                            : () => {
-                                document.getElementById("meuForm").reset();
-                                location.reload();
-                            }
-                });
-            }
+                    showModal({
+                        title: "Dados enviados com sucesso!",
+                        message:
+                            "Em breve entraremos em contato com você",
+                        type: "success",
+                        showCancel: false,
+                        confirmText: "Ok",
+                        onConfirm: () => {
+                            document.getElementById("meuForm").reset();
+                            location.reload();
+                        }
+                    });
+
+                } catch (err) {
+                    esconderSpinner();
+
+                    showModal({
+                        title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
+                        message:
+                            err?.status === 400
+                                ? ""
+                                : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                        type: "error",
+                        showConfirm: false,
+                        showCancel: true,
+                        cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
+                        backendError: err?.backend,
+                        onCancel:
+                            err?.status === 400
+                                ? undefined
+                                : () => {
+                                    document.getElementById("meuForm").reset();
+                                    location.reload();
+                                }
+                    });
+                }
+            })
         });
     } else {
         // Modal de erro (via função reutilizável)
         showModal({
             title: "Dados incorretos.",
-            message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')}`,
+            message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')
+                }`,
             type: "error",
             showConfirm: false,
             showCancel: true,
