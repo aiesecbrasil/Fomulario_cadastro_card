@@ -834,7 +834,7 @@ Nome: ${nome}\n
 Sobrenome: ${sobrenome}\n
 Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t')}\n
 Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t')}\n
-Data de Nascimento: ${inputVisivel.value}`;
+Data de Nascimento: ${inputVisivel.value}\n`;
 
         // Adiciona só se o campo existir
         if (produtoSolicitado) {
