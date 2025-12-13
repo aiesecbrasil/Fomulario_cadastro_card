@@ -183,8 +183,12 @@ h2 {
 }
 
 #DadosAqui {
-    word-break: overflow-wrap;
     overflow-wrap: break-word;
+    /* força quebra */
+    word-wrap: break-word;
+    /* compatibilidade */
+    white-space: normal;
+    /* permite quebra */
 }
 
 .modal {
