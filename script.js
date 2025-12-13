@@ -829,7 +829,6 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             tipo: e.tipo
         }));
 
-
         let dados = `
 Nome: ${nome}\n
 Sobrenome: ${sobrenome}\n
@@ -860,7 +859,6 @@ Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textConten
         dados += `
 
 Aceitou Política: Sim`;
-
 
         // Mostra os dados no Modal
         const modal = document.getElementById('exampleModalLong');
