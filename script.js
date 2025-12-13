@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Modal de erro (centralizado via função reutilizável)
             showModal({
                 title: "Erro de conexão",
-                message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: processo.seletivo@aiesec.org.br",
+                message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br",
                 type: "error",
                 showConfirm: false,
                 showCancel: true,
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Modal de erro em caso de falha de rede/parse
         showModal({
             title: "Erro de conexão",
-            message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: processo.seletivo@aiesec.org.br",
+            message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br",
             type: "error",
             showConfirm: false,
             showCancel: true,
@@ -915,7 +915,7 @@ Aceitou Política: Sim`;
                 showModal({
                     title: "Dados enviados com sucesso!",
                     message:
-                        "Em breve você receberá uma confirmação por email.\nCaso não receba, verifique sua caixa de spam ou\nentre em contato com o email: processo.seletivo@aiesec.org.br",
+                        "Em breve entraremos em contato com você",
                     type: "success",
                     showCancel: false,
                     confirmText: "Ok",
@@ -933,7 +933,7 @@ Aceitou Política: Sim`;
                     message:
                         err?.status === 400
                             ? ""
-                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: processo.seletivo@aiesec.org.br",
+                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
                     type: "error",
                     showConfirm: false,
                     showCancel: true,
