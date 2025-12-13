@@ -919,7 +919,7 @@ Aceitou Política: Sim`;
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
-                            "Em breve entraremos em contato com você",
+                            "Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone informado",
                         type: "success",
                         showCancel: false,
                         confirmText: "Ok",
