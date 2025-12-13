@@ -830,34 +830,26 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         }));
 
         let dados = `Nome: ${nome}<br>
-Sobrenome: ${sobrenome}<br>
-Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('\t\t<br>')}<br>
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('\t\t<br>')}<br>
-Data de Nascimento: ${inputVisivel.value}<br>`;
+        Sobrenome: ${sobrenome}<br>
+        Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>')}<br>
+        Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>')}<br>
+        Data de Nascimento: ${inputVisivel.value}<br>`;
 
         // Adiciona só se o campo existir
         if (produtoSolicitado) {
-            dados += `
-
-Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
+            dados += `Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
         if (aiesecProxima) {
-            dados += `
-
-AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}<br>`;
+            dados += `AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}<br>`;
         }
 
         if (meioDivulgacao) {
-            dados += `
-
-Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}<br>`;
+            dados += `Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}<br>`;
         }
 
         // Sempre presente
-        dados += `
-
-Aceitou Política: Sim`;
+        dados += `Aceitou Política: Sim`;
 
         // Mostra os dados no Modal
         const modal = document.getElementById('exampleModalLong');
