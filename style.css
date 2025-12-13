@@ -182,6 +182,11 @@ h2 {
     line-height: 1.4;
 }
 
+#DadosAqui{
+    word-break:overflow-wrap;
+    overflow-wrap: break-word;
+}
+
 .modal {
     top: 30%;
 }
@@ -191,7 +196,6 @@ h2 {
 }
 
 .modal-title {
-
     font-family: 'Arial', sans-serif;
     text-align: center;
     color: #004a99;

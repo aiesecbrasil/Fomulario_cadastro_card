@@ -53,77 +53,135 @@ let todasOpcoes_Como_Conheceu;
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 
+/**
+ * Exibe um modal padronizado de acordo com elementos Bootstrap existentes no DOM.
+ * Efeitos colaterais: altera conteúdo/estado de #exampleModalLong e exibe o modal, substitui listeners dos botões.
+ * Dependências: window.bootstrap.Modal, elementos com ids exampleModalLong, exampleModalLongTitle, botaoConfirmar, botaoCancelar, DadosAqui.
+ */
+function showModal(options) {
+    const {
+        title,
+        message,
+        type = 'info',
+        showConfirm = true,
+        confirmText = 'Confirmar',
+        onConfirm,
+        showCancel = true,
+        cancelText = 'Cancelar',
+        onCancel,
+        backendError
+    } = options || {};
+
+    // Elementos do modal (estrutura já existente no HTML)
+    const modalEl = document.getElementById('exampleModalLong');
+    const myModal = new bootstrap.Modal(modalEl);
+    const tituloModal = document.getElementById('exampleModalLongTitle');
+    const botaoConfirmar = document.getElementById('botaoConfirmar');
+    const botaoCancelar = document.getElementById('botaoCancelar');
+    const corpo = document.getElementById('DadosAqui');
+
+    // Converte lista de mensagens para texto
+    const normalizedMessage = Array.isArray(message) ? message.join('\n') : (message || '');
+
+    // Se veio erro do backend, prioriza sua renderização no corpo
+    let backendMsg = '';
+    if (backendError) {
+        try {
+            if (typeof backendError === 'string') {
+                backendMsg = backendError;
+            } else if (backendError.error) {
+                backendMsg = backendError.error;
+            } else if (backendError.message) {
+                backendMsg = backendError.message;
+            } else {
+                backendMsg = JSON.stringify(backendError);
+            }
+        } catch (_) {
+            backendMsg = '';
+        }
+    }
+
+    // Título
+    tituloModal.textContent = title || '';
+
+    // Corpo do modal: mensagem principal ou possível mensagem do backend
+    corpo.textContent = backendMsg || normalizedMessage;
+
+    // Estado e rótulos dos botões
+    botaoConfirmar.style.display = showConfirm ? 'inline-block' : 'none';
+    botaoConfirmar.disabled = !showConfirm;
+    botaoConfirmar.textContent = confirmText;
+
+    botaoCancelar.style.display = showCancel ? 'inline-block' : 'none';
+    botaoCancelar.disabled = !showCancel;
+    botaoCancelar.textContent = cancelText;
+
+    // Remove listeners anteriores para evitar múltiplos disparos
+    botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
+    botaoCancelar.replaceWith(botaoCancelar.cloneNode(true));
+    const novoConfirmar = document.getElementById('botaoConfirmar');
+    const novoCancelar = document.getElementById('botaoCancelar');
+
+    if (showConfirm && typeof onConfirm === 'function') {
+        novoConfirmar.addEventListener('click', onConfirm, { once: true });
+    }
+    if (showCancel && typeof onCancel === 'function') {
+        novoCancelar.addEventListener('click', onCancel, { once: true });
+    }
+
+    // Exibe o modal
+    myModal.show();
+}
 document.addEventListener("DOMContentLoaded", async () => {
     parametros = await ParamentroURL(); // aguarda a função assíncrona
     const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
 
     try {
-
+        // Busca metadados para construção dinâmica de campos
         const response = await fetch(url);
         const data = await response.json();
 
         // Verificação de segurança mais completa
+        // Campos dinamicamente configuráveis vindos do backend (formio like)
         campos = data?.data?.fields;
 
-        //Verfica se o dado campos é não nulo
+        // Verfica se o dado campos é não nulo
         if (!campos) {
-
-            // 🔻 Modal de erro
-            const modal = document.getElementById('exampleModalLong');
-            const myModal = new bootstrap.Modal(modal);
-            const botaoEnviar = document.getElementById("botaoConfirmar");
-            const botaoRemover = document.getElementById("botaoCancelar");
-
-            const tituloModal = document.getElementById("exampleModalLongTitle");
-
-            tituloModal.textContent = "Erro de conexão";
-
-
-            document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.
-        Caso o erro persista contate o email: contato@aiesec.org.br`;
-            botaoEnviar.style.display = 'none';
-            botaoEnviar.disabled = true;
-            botaoRemover.textContent = "Recarregar";
-
-            myModal.show();
+            // Modal de erro (centralizado via função reutilizável)
+            showModal({
+                title: "Erro de conexão",
+                message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: processo.seletivo@aiesec.org.br",
+                type: "error",
+                showConfirm: false,
+                showCancel: true,
+                cancelText: "Recarregar",
+                onCancel: () => {
+                    document.getElementById("meuForm").reset();
+                    location.reload();
+                }
+            });
 
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
-
-            botaoRemover.addEventListener("click", () => {
-                document.getElementById("meuForm").reset();
-                location.reload();
-            }, { once: true });
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
         criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio, parametros.rota);
 
         preencherDropdown(parametros);
     } catch (error) {
-        // 🔻 Modal de erro
-        const modal = document.getElementById('exampleModalLong');
-        const myModal = new bootstrap.Modal(modal);
-        const botaoEnviar = document.getElementById("botaoConfirmar");
-        const botaoRemover = document.getElementById("botaoCancelar");
-
-        const tituloModal = document.getElementById("exampleModalLongTitle");
-
-        tituloModal.textContent = "Erro de conexão";
-
-
-        document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.
-    Caso o erro persista contate o email: contato@aiesec.org.br`;
-        botaoEnviar.style.display = 'none';
-        botaoEnviar.disabled = true;
-        botaoRemover.textContent = "Recarregar";
-
-        myModal.show();
-
+        // Modal de erro em caso de falha de rede/parse
+        showModal({
+            title: "Erro de conexão",
+            message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: processo.seletivo@aiesec.org.br",
+            type: "error",
+            showConfirm: false,
+            showCancel: true,
+            cancelText: "Recarregar",
+            onCancel: () => {
+                document.getElementById("meuForm").reset();
+                location.reload();
+            }
+        });
         console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
-
-        botaoRemover.addEventListener("click", () => {
-            document.getElementById("meuForm").reset();
-            location.reload();
-        }, { once: true });
         console.error('Erro ao buscar dados:', error);
     }
 });
@@ -846,61 +904,51 @@ Aceitou Política: Sim`;
                     }),
                 });
 
-                if (!response.ok) throw new Error(`Erro HTTP! Status: ${response.status}`);
+                if (!response.ok) {
+                    let backend = null;
+                    try { backend = await response.json(); } catch (_) { backend = null; }
+                    throw { status: response.status, backend };
+                }
 
                 esconderSpinner();
 
-                const tituloModal = document.getElementById("exampleModalLongTitle");
-                const botaoFechar = document.getElementById("botaoFechar");
-
-                botaoRemover.style.display = "none";
-                tituloModal.textContent = "Dados enviados com sucesso!";
-                document.getElementById("DadosAqui").textContent = "Entraremos em contato em breve!";
-                novoBotaoConfirmar.textContent = "Ok";
-
-                const botaoLimpo = novoBotaoConfirmar.cloneNode(true);
-                novoBotaoConfirmar.parentNode.replaceChild(botaoLimpo, novoBotaoConfirmar);
-
-                botaoLimpo.addEventListener("click", () => {
-                    document.getElementById("meuForm").reset();
-                    location.reload();
+                showModal({
+                    title: "Dados enviados com sucesso!",
+                    message:
+                        "Em breve você receberá uma confirmação por email.\nCaso não receba, verifique sua caixa de spam ou\nentre em contato com o email: processo.seletivo@aiesec.org.br",
+                    type: "success",
+                    showCancel: false,
+                    confirmText: "Ok",
+                    onConfirm: () => {
+                        document.getElementById("meuForm").reset();
+                        location.reload();
+                    }
                 });
 
-                botaoFechar.addEventListener("click", () => {
-                    document.getElementById("meuForm").reset();
-                    location.reload();
-                }, { once: true });
-
-            } catch (erro) {
-                console.error("Erro ao enviar dados:", erro);
+            } catch (err) {
                 esconderSpinner();
-                // 🔻 Modal de erro
-                const modal = document.getElementById('exampleModalLong');
-                const myModal = new bootstrap.Modal(modal);
-                const botaoEnviar = document.getElementById("botaoConfirmar");
-                const botaoRemover = document.getElementById("botaoCancelar");
 
-                const tituloModal = document.getElementById("exampleModalLongTitle");
-
-                tituloModal.textContent = "Falha ao Enviar";
-
-
-                document.getElementById("DadosAqui").textContent = `Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br`;
-
-
-                botaoEnviar.style.display = 'none';
-                botaoEnviar.disabled = true;
-                botaoRemover.textContent = "Recarregar";
-
-                myModal.show();
-
-                botaoRemover.addEventListener("click", () => {
-                    document.getElementById("meuForm").reset();
-                    location.reload();
-                }, { once: true });
+                showModal({
+                    title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
+                    message:
+                        err?.status === 400
+                            ? ""
+                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: processo.seletivo@aiesec.org.br",
+                    type: "error",
+                    showConfirm: false,
+                    showCancel: true,
+                    cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
+                    backendError: err?.backend,
+                    onCancel:
+                        err?.status === 400
+                            ? undefined
+                            : () => {
+                                document.getElementById("meuForm").reset();
+                                location.reload();
+                            }
+                });
             }
         });
-
     } else {
         // 🔻 Modal de erro
         const modal = document.getElementById('exampleModalLong');
