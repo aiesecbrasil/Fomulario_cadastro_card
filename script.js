@@ -950,26 +950,15 @@ Aceitou Política: Sim`;
             }
         });
     } else {
-        // 🔻 Modal de erro
-        const modal = document.getElementById('exampleModalLong');
-        const myModal = new bootstrap.Modal(modal);
-        const botaoEnviar = document.getElementById("botaoConfirmar");
-        const botaoRemover = document.getElementById("botaoCancelar");
-
-        const tituloModal = document.getElementById("exampleModalLongTitle");
-
-        tituloModal.textContent = "Dados incorretos.";
-
-
-        document.getElementById("DadosAqui").textContent = `Por favor, corrija os erros e tente novamente.
-
-        ${camposErro.map(campo => `- ${campo}`).join('\n')}`;
-
-        botaoEnviar.style.display = 'none';
-        botaoEnviar.disabled = true;
-        botaoRemover.textContent = "Corrigir";
-
-        myModal.show();
+        // Modal de erro (via função reutilizável)
+        showModal({
+            title: "Dados incorretos.",
+            message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')}`,
+            type: "error",
+            showConfirm: false,
+            showCancel: true,
+            cancelText: "Corrigir"
+        });
     }
 
 });
