@@ -830,8 +830,8 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         }));
 
         let dados = `Nome: ${nome}<br>Sobrenome: ${sobrenome}<br>Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>Data de Nascimento: ${inputVisivel.value}<br>
-        `;
+Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
+Data de Nascimento: ${inputVisivel.value}<br>`;
 
         // Adiciona só se o campo existir
         if (produtoSolicitado) {
