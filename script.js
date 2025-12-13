@@ -865,7 +865,9 @@ Aceitou Política: Sim`;
         const myModal = new bootstrap.Modal(modal);
         const botaoConfirmar = document.getElementById("botaoConfirmar");
         const botaoRemover = document.getElementById("botaoCancelar");
+        const tituloModal = document.getElementById("exampleModalLongTitle");
 
+        tituloModal.textContent = "Confirme seus dados";
         // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
         botaoConfirmar.style.display = 'inline-block';
         botaoConfirmar.disabled = false;
