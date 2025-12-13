@@ -908,7 +908,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
-                            "Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou",
+                            "Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou.",
                         type: "success",
                         showCancel: false,
                         confirmText: "Ok",
