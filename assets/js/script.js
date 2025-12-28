@@ -348,7 +348,7 @@ function criarCampos(programa, cl, anuncio, rota) {
         const aiesecs = aiesecProx.config.settings.options;
 
         todasAiesecs = aiesecs.reduce((prev, curr) => {
-            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
+            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ")}];
             return prev;
         }, []);
 
