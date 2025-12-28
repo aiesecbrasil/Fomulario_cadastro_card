@@ -53,6 +53,81 @@ let todasOpcoes_Como_Conheceu;
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 
+// Helper para construir um combo com filtro (autocomplete)
+function buildCombo({ container, inputId, listId, hiddenId, placeholder, options, preselectIndex }) {
+    const html = `
+        <div class="combo">
+            <input type="text" id="${inputId}" placeholder="${placeholder}" autocomplete="off">
+            <ul id="${listId}" style="display:none"></ul>
+        </div>
+        <input type="hidden" id="${hiddenId}" value="">
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    const hidden = document.getElementById(hiddenId);
+
+    function hideList() {
+        list.style.display = 'none';
+    }
+    function showList() {
+        list.style.display = 'block';
+    }
+
+    function render(term = '') {
+        const t = term.trim().toLowerCase();
+        list.innerHTML = '';
+        const filtradas = options.filter(o => o.text.toLowerCase().includes(t));
+
+        if (!filtradas.length) {
+            hideList();
+            return;
+        }
+
+        filtradas.forEach(o => {
+            const li = document.createElement('li');
+            li.textContent = o.text;
+            li.addEventListener('mouseover', () => {
+                list.querySelectorAll('li').forEach(e => e.classList.remove('active'));
+                li.classList.add('active');
+            });
+            li.addEventListener('click', () => {
+                input.value = o.text;
+                hidden.value = o.id;
+                hideList();
+            });
+            list.appendChild(li);
+        });
+        showList();
+    }
+
+    // Digitar → filtra
+    input.addEventListener('input', () => {
+        hidden.value = '';
+        render(input.value);
+    });
+
+    // Clicar/Focar → abre lista (filtrada pelo valor atual)
+    input.addEventListener('focus', () => {
+        render(input.value);
+    });
+
+    // Fecha ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.combo')) {
+            hideList();
+        }
+    });
+
+    // Pré-seleção (quando houver parâmetro UTM válido)
+    if (typeof preselectIndex === 'number' && preselectIndex >= 0 && preselectIndex < options.length) {
+        const opt = options[preselectIndex];
+        input.value = opt.text;
+        hidden.value = opt.id;
+    }
+}
+
 /**
  * Exibe um modal padronizado de acordo com elementos Bootstrap existentes no DOM.
  * Efeitos colaterais: altera conteúdo/estado de #exampleModalLong e exibe o modal, substitui listeners dos botões.
@@ -266,139 +341,58 @@ function criarCampos(programa, cl, anuncio, rota) {
     }
     if (!cl) {
         aiesec.innerHTML = `
-        <label for="aiesec">Qual é a AIESEC mais próxima de você?
-                    *</label>
-                <select id="aiesec" name="aiesec" required>
-                    <option value>Carregando...</option>
-                </select>
-                <div class="error-msg" id="erro-aiesec"></div>
-        `
-        //__________________________________BOTÃO AIESEC MAIS PRÓXIMA_______________________________________
-
-        // Cria o menu suspenso
-        const dropdown_AiesecProx = document.getElementById('aiesec');
-        dropdown_AiesecProx.innerHTML = '';
-        dropdown_AiesecProx.setAttribute("disabled", "")
-
-        // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
-        const defaultOption_AiesecProx = document.createElement('option');
-        defaultOption_AiesecProx.value = '';
-        defaultOption_AiesecProx.textContent = 'Carregando';
-        dropdown_AiesecProx.appendChild(defaultOption_AiesecProx);
-
-        defaultOption_AiesecProx.setAttribute('disabled', '');
-        defaultOption_AiesecProx.setAttribute('selected', '');
-
-        //________________________________________________________________________________________________
-
-        //____________________________Lógica Aiesec Mais Próxima__________________________________________
+        <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
+        `;
 
         const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
         const aiesecs = aiesecProx.config.settings.options;
 
-
-        todasAiesecs = aiesecs.reduce(
-            function (prev, curr) {
-
-                if (curr.status == "active") {
-                    return [...prev, { id: curr.id, text: curr.text }];
-                }
-
-                return [...prev]
-
-            },
-            []
-        )
+        todasAiesecs = aiesecs.reduce((prev, curr) => {
+            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
+            return prev;
+        }, []);
 
         indiceSiglaCL = escritorios.indexOf(cl);
 
-
-        todasAiesecs.forEach((aiesec, index) => {
-            const newOption = document.createElement('option');
-            newOption.value = aiesec.id;
-            newOption.textContent = aiesec.text;
-            // Se o índice da sigla for igual ao índice do produto
-            if (index === indiceSiglaCL) {
-                newOption.selected = true;
-            }
-            dropdown_AiesecProx.appendChild(newOption);
+        buildCombo({
+            container: aiesec,
+            inputId: 'combo-input-aiesec',
+            listId: 'combo-list-aiesec',
+            hiddenId: 'aiesec',
+            placeholder: 'Digite ou selecione',
+            options: todasAiesecs,
+            preselectIndex: indiceSiglaCL >= 0 ? indiceSiglaCL : undefined
         });
 
-        // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
-        // ativa o Menu Suspenso novamente
-        defaultOption_AiesecProx.textContent = "Selecione";
-        dropdown_AiesecProx.removeAttribute("disabled");
-
-
-        //________________________________________________________________________________________________
-
-
+        aiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
     }
     if (!anuncio) {
         conheceAiesec.innerHTML = `
-        <label for="conheceu">Como você conheceu a AIESEC? *</label>
-                <select id="conheceu" name="conheceu" required>
-                    <option value>Carregando...</option>
-                </select>
-                <div class="error-msg" id="erro-conheceu"></div>
-        `
-        //___________________________BOTÃO COMO CONHECEU A AIESEC_________________________________________
-
-        // Cria o menu suspenso
-        const dropdown_Como_Conheceu = document.getElementById('conheceu');
-        dropdown_Como_Conheceu.innerHTML = '';
-        dropdown_Como_Conheceu.setAttribute("disabled", "")
-
-        // Cria um botão com a frase "Carregando" enquanto o Menu Suspenso está desativado
-        const defaultOption_Como_Conheceu = document.createElement('option');
-        defaultOption_Como_Conheceu.value = '';
-        defaultOption_Como_Conheceu.textContent = 'Carregando';
-        dropdown_Como_Conheceu.appendChild(defaultOption_Como_Conheceu);
-
-        defaultOption_Como_Conheceu.setAttribute('disabled', '');
-        defaultOption_Como_Conheceu.setAttribute('selected', '');
-
-        //_________________________________________________________________________________________________
-
-        //______________________Lógica Como conheceu a AIESEC______________________________________________
-
+        <label for="combo-input-conheceu">Como você conheceu a AIESEC? *</label>
+        `;
 
         const comoConheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?");
         const opçoes_Como_Conheceu = comoConheceu.config.settings.options;
 
-
-        todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce(
-            function (prev, curr) {
-
-                if (curr.status == "active") {
-                    return [...prev, { id: curr.id, text: curr.text }];
-                }
-
-                return [...prev]
-
-            },
-            []
-        )
+        todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce((prev, curr) => {
+            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
+            return prev;
+        }, []);
 
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
 
-
-        todasOpcoes_Como_Conheceu.forEach((opcoes, index) => {
-            const newOption = document.createElement('option');
-            newOption.value = opcoes.id;
-            newOption.textContent = opcoes.text;
-            if (index === indiceComoConheceuAiesec) {
-                newOption.selected = true;
-            }
-            dropdown_Como_Conheceu.appendChild(newOption);
+        buildCombo({
+            container: conheceAiesec,
+            inputId: 'combo-input-conheceu',
+            listId: 'combo-list-conheceu',
+            hiddenId: 'conheceu',
+            placeholder: 'Digite ou selecione',
+            options: todasOpcoes_Como_Conheceu,
+            preselectIndex: indiceComoConheceuAiesec >= 0 ? indiceComoConheceuAiesec : undefined
         });
 
-        // Quando todas as opções estiverem prontas o botão se tranforma em "Selecione" e 
-        // ativa o Menu Suspenso novamente
-        defaultOption_Como_Conheceu.textContent = "Selecione";
-        dropdown_Como_Conheceu.removeAttribute("disabled");
-
+        conheceAiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
 }
 
@@ -774,11 +768,11 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             produtoSolicitado = document.getElementById('produto');
             idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
         } else if (campo && campo.value !== "" && id === "aiesec") {
-            aiesecProxima = document.getElementById('aiesec');
-            idCL.push(aiesecProxima.options[aiesecProxima.selectedIndex].value);
+            const hiddenAiesec = document.getElementById('aiesec');
+            idCL.push(hiddenAiesec.value);
         } else if (campo && campo.value !== "" && id === "conheceu") {
-            meioDivulgacao = document.getElementById('conheceu');
-            idAnuncio.push(meioDivulgacao.options[meioDivulgacao.selectedIndex].value);
+            const hiddenConheceu = document.getElementById('conheceu');
+            idAnuncio.push(hiddenConheceu.value);
         }
     });
 
@@ -838,12 +832,13 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
             dados += `Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
-        if (aiesecProxima) {
-            dados += `AIESEC: ${aiesecProxima.options[aiesecProxima.selectedIndex].textContent}<br>`;
+        const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
+        const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
+        if (aiesecTexto) {
+            dados += `AIESEC: ${aiesecTexto}<br>`;
         }
-
-        if (meioDivulgacao) {
-            dados += `Como conheceu: ${meioDivulgacao.options[meioDivulgacao.selectedIndex].textContent}<br>`;
+        if (conheceuTexto) {
+            dados += `Como conheceu: ${conheceuTexto}<br>`;
         }
 
         // Sempre presente

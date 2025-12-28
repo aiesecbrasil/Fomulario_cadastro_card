@@ -222,6 +222,39 @@ h2 {
     background-color: #f8f9fa;
 }
 
+
+input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #ccd6eb;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ccd6eb;
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+li:hover {
+    background: #f0f0f0;
+}
+
+li.active {
+    background: #dbeafe;
+}
+
 button[type="submit"] {
     display: block;
     width: 100%;
