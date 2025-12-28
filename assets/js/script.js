@@ -1,38 +1,61 @@
+/**
+ * Tipos utilitários JSDoc para melhor legibilidade/intellisense.
+ * Estes comentários não alteram a execução, apenas documentam.
+ *
+ * @typedef {{ id: string|number, text: string, status?: string }} OptionItem
+ * @typedef {{ label: string, config: { settings: { options?: OptionItem[], possible_types?: string[] } } }} Campo
+ * @typedef {{
+ *   cl: string,
+ *   tipoIntercambio: string,
+ *   campanha: string,
+ *   anuncio: string,
+ *   formaAnuncio: string,
+ *   rota: string
+ * }} ParametrosURL
+ */
+
+/** @type {HTMLDivElement} */
 const containerTelefone = document.getElementById('telefones-container');
+/** @type {HTMLDivElement} */
 const containerEmail = document.getElementById('emails-container');
+
+// Estruturas de produto com sigla e nome por extenso para facilitar matching.
+//Formato dos itens: { sigla: 'gv', nome: 'Voluntário Globa' }
 const siglaProduto = [
-    'gv', // Voluntário Global
-    'gtast', // Talento Global Short Term
-    'gtalt', // Talento Global Mid e Long Term
-    'gte' // Professor Global
+    { sigla: 'gv', nome: 'Voluntário Global' },
+    { sigla: 'gtast', nome: 'Talento Global Short Term' },
+    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term' },
+    { sigla: 'gte', nome: 'Professor Global' }
 ];
+// Estruturas de escritórios (CLs) com sigla e nome por extenso para facilitar matching.
+//Formato dos itens: { sigla: 'AB', nome: 'ABC' } 
 const escritorios = [
-    "AB",  // ABC
-    "AJ",  // ARACAJU
-    "BA",  // Bauru
-    "BH",  // BELO HORIZONTE
-    "BS",  // BRASÍLIA
-    "CT",  // CURITIBA
-    "FL",  // FLORIANÓPOLIS
-    "FR",  // FRANCA
-    "FO",  // FORTALEZA
-    "JP",  // JOÃO PESSOA
-    "LM",  // LIMEIRA
-    "MZ",  // MACEIÓ
-    "MN",  // MANAUS
-    "MA",  // MARINGÁ
-    "PA",  // PORTO ALEGRE
-    "RC",  // RECIFE
-    "RJ",  // RIO DE JANEIRO
-    "SS",  // SALVADOR
-    "SM",  // SANTA MARIA
-    "GV",  // SÃO PAULO UNIDADE GETÚLIO VARGAS
-    "MK",  // SÃO PAULO UNIDADE MACKENZIE
-    "US",  // SÃO PAULO UNIDADE USP
-    "SO",  // SOROCABA
-    "UB",  // UBERLÂNDIA
-    "VT",  // VITÓRIA
-    "MC" // BRASIL (NACIONAL)
+    { sigla: "AB", nome: "ABC" },
+    { sigla: "AJ", nome: "ARACAJU" },
+    { sigla: "BA", nome: "BAURU" },
+    { sigla: "BH", nome: "BELO HORIZONTE" },
+    { sigla: "BS", nome: "BRASÍLIA" },
+    { sigla: "CT", nome: "CURITIBA" },
+    { sigla: "FL", nome: "FLORIANÓPOLIS" },
+    { sigla: "FR", nome: "FRANCA" },
+    { sigla: "FO", nome: "FORTALEZA" },
+    { sigla: "JP", nome: "JOÃO PESSOA" },
+    { sigla: "LM", nome: "LIMEIRA" },
+    { sigla: "MZ", nome: "MACEIÓ" },
+    { sigla: "MN", nome: "MANAUS" },
+    { sigla: "MA", nome: "MARINGÁ" },
+    { sigla: "PA", nome: "PORTO ALEGRE" },
+    { sigla: "RC", nome: "RECIFE" },
+    { sigla: "RJ", nome: "RIO DE JANEIRO" },
+    { sigla: "SS", nome: "SALVADOR" },
+    { sigla: "SM", nome: "SANTA MARIA" },
+    { sigla: "GV", nome: "SÃO PAULO UNIDADE GETÚLIO VARGAS" },
+    { sigla: "MK", nome: "SÃO PAULO UNIDADE MACKENZIE" },
+    { sigla: "US", nome: "SÃO PAULO UNIDADE USP" },
+    { sigla: "SO", nome: "SOROCABA" },
+    { sigla: "UB", nome: "UBERLÂNDIA" },
+    { sigla: "VT", nome: "VITÓRIA" },
+    { sigla: "MC", nome: "BRASIL (NACIONAL)" }
 ];
 let campos;
 let idProduto = [];
@@ -54,6 +77,27 @@ containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 
 // Helper para construir um combo com filtro (autocomplete)
+/**
+ * Constrói um componente simples de combo com filtro (autocomplete).
+ *
+ * Estrutura gerada:
+ * <div class="combo">
+ *   <input id="{inputId}">
+ *   <ul id="{listId}"></ul>
+ * </div>
+ * <input type="hidden" id="{hiddenId}">
+ *
+ * @param {{
+ *   container: HTMLElement,
+ *   inputId: string,
+ *   listId: string,
+ *   hiddenId: string,
+ *   placeholder: string,
+ *   options: OptionItem[],
+ *   preselectIndex?: number
+ * }} params
+ * @returns {void}
+ */
 function buildCombo({ container, inputId, listId, hiddenId, placeholder, options, preselectIndex }) {
     const html = `
         <div class="combo">
@@ -73,6 +117,12 @@ function buildCombo({ container, inputId, listId, hiddenId, placeholder, options
     }
     function showList() {
         list.style.display = 'block';
+    }
+
+    function closeAllCombos() {
+        document.querySelectorAll('.combo ul').forEach(ul => {
+            ul.style.display = 'none';
+        });
     }
 
     function render(term = '') {
@@ -110,10 +160,11 @@ function buildCombo({ container, inputId, listId, hiddenId, placeholder, options
 
     // Clicar/Focar → abre lista (filtrada pelo valor atual)
     input.addEventListener('focus', () => {
+        closeAllCombos(); //fecha todos os combos antes de abrir o proximo
         render(input.value);
     });
 
-    // Fecha ao clicar fora
+    // Fecha ao clicar fora do combo
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.combo')) {
             hideList();
@@ -134,6 +185,21 @@ function buildCombo({ container, inputId, listId, hiddenId, placeholder, options
  * Dependências: window.bootstrap.Modal, elementos com ids exampleModalLong, exampleModalLongTitle, botaoConfirmar, botaoCancelar, DadosAqui.
  */
 function showModal(options) {
+    /**
+     * @typedef {{
+     *  title?: string,
+     *  message?: string|string[],
+     *  type?: 'info'|'error'|'success',
+     *  showConfirm?: boolean,
+     *  confirmText?: string,
+     *  onConfirm?: (ev: MouseEvent) => void,
+     *  showCancel?: boolean,
+     *  cancelText?: string,
+     *  onCancel?: (ev: MouseEvent) => void,
+     *  backendError?: unknown
+     * }} ModalOptions
+     * @type {ModalOptions}
+     */
     const {
         title,
         message,
@@ -207,6 +273,8 @@ function showModal(options) {
     // Exibe o modal
     myModal.show();
 }
+// Inicializa o fluxo principal: busca metadados e monta campos dinâmicos.
+// Em caso de erro de rede/parse, exibe modal amigável e permite recarregar.
 document.addEventListener("DOMContentLoaded", async () => {
     parametros = await ParamentroURL(); // aguarda a função assíncrona
     const url = 'https://baziaiesec.pythonanywhere.com/metadados-card';
@@ -261,6 +329,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 //---------------------Criar campo se não vinher parâmtro------------------
+/**
+ * Cria dinamicamente campos de Produto, AIESEC e Como conheceu quando faltarem
+ * parâmetros UTM correspondentes.
+ *
+ * @param {string|undefined} programa Sigla do produto (ex: 'gv')
+ * @param {string|undefined} cl Sigla do comitê local (ex: 'RJ')
+ * @param {string|undefined} anuncio Slug de "Como conheceu"
+ * @param {string|undefined} rota Slug da rota (pode pré-selecionar produto)
+ */
 function criarCampos(programa, cl, anuncio, rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
@@ -314,7 +391,9 @@ function criarCampos(programa, cl, anuncio, rota) {
             []
         )
 
-        indiceSigla = siglaProduto.indexOf(programa);
+        // Produto: obtém o índice com base na nova estrutura de siglaProduto [{sigla, nome}]
+        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === programa);
+        indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos.forEach((produto, index) => {
             const newOption = document.createElement("option");
@@ -348,11 +427,15 @@ function criarCampos(programa, cl, anuncio, rota) {
         const aiesecs = aiesecProx.config.settings.options;
 
         todasAiesecs = aiesecs.reduce((prev, curr) => {
-            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ")}];
+            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ") }];
             return prev;
         }, []);
 
-        indiceSiglaCL = escritorios.indexOf(cl);
+        // Localiza o índice do CL com base na sigla (utm_term) e compara por nome por extenso 
+        const entryCL = escritorios.find(e => e.sigla === cl);
+        indiceSiglaCL = entryCL ? todasAiesecs.findIndex(
+            o => slugify(o.text) === slugify(entryCL.nome) || slugify(o.text)
+                .includes(slugify(entryCL.nome))) : -1;
 
         buildCombo({
             container: aiesec,
@@ -397,6 +480,11 @@ function criarCampos(programa, cl, anuncio, rota) {
 }
 
 // -------------------- Máscara e validação de telefone --------------------
+/**
+ * Aplica máscara de telefone brasileiro durante a digitação.
+ * Formato alvo: (DD) 9 XXXX-XXXX.
+ * @param {HTMLInputElement} input
+ */
 function aplicarMascaraTelefone(input) {
     input.addEventListener('input', function (e) {
         let valor = e.target.value.replace(/\D/g, ''); // remove tudo que não for número
@@ -422,6 +510,11 @@ function aplicarMascaraTelefone(input) {
 }
 
 // Função para remover a máscara e deixar só números
+/**
+ * Remove todos os caracteres não numéricos de um telefone formatado.
+ * @param {string} valorFormatado
+ * @returns {string}
+ */
 function limparTelefoneFormatado(valorFormatado) {
     return valorFormatado.replace(/\D/g, ''); // remove tudo que não for número
 }
@@ -442,6 +535,10 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
 
 
+/**
+ * Valida telefone no blur usando regex do formato (DD) 9 XXXX-XXXX.
+ * @param {HTMLInputElement} input
+ */
 function aplicarValidacaoTelefone(input) {
     input.addEventListener('blur', function (e) {
         const valor = e.target.value.trim();
@@ -459,6 +556,11 @@ function aplicarValidacaoTelefone(input) {
 
 
 // -------------------- Validação de e-mail --------------------
+/**
+ * Valida formato de e-mail básico no blur.
+ * Mantém estrutura para futura validação de provedores (comentada).
+ * @param {HTMLInputElement} input
+ */
 function validarEmailComProvedor(input) {
     input.addEventListener('blur', function (e) {
         const valor = e.target.value.trim();
@@ -484,6 +586,11 @@ function validarEmailComProvedor(input) {
     });
 }
 // -------------------- Validação de nome/sobrenome --------------------
+/**
+ * Valida um input permitindo apenas letras (inclui acentuadas) e espaços.
+ * @param {string} id Id do input a validar
+ * @param {string} erroId Id do span/alvo de mensagem de erro
+ */
 function validarNome(id, erroId) {
     const input = document.getElementById(id);
     const erro = document.getElementById(erroId);
@@ -510,6 +617,10 @@ document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
 });
 
 // -------------------- Adicionar/Remover campos --------------------
+/**
+ * Adiciona um bloco de e-mail com select de tipos traduzidos e input email.
+ * Efeitos colaterais: altera DOM (#emails-container) e envia postMessage ao parent.
+ */
 async function addEmail() {
 
     const div = document.createElement('div');
@@ -550,6 +661,10 @@ async function addEmail() {
 }
 
 
+/**
+ * Adiciona um bloco de telefone, aplica máscara e validação.
+ * Efeitos colaterais: altera DOM (#telefones-container) e envia postMessage ao parent.
+ */
 async function addTelefone() {
 
     const div = document.createElement('div');
@@ -594,6 +709,11 @@ async function addTelefone() {
     window.parent.postMessage('campoAdicionado', 'https://aiesec.org.br/');
 }
 
+/**
+ * Remove um bloco (email/telefone) mantendo pelo menos um.
+ * @param {HTMLButtonElement} botao
+ * @param {"email"|"telefone"} tipo
+ */
 function removeCampo(botao, tipo) {
     const container = tipo === 'email'
         ? document.getElementById('emails-container')
@@ -616,9 +736,15 @@ function removeCampo(botao, tipo) {
 
 // -------------------- Pikaday - Data de nascimento --------------------
 // Inputs da data
+/** @type {HTMLInputElement} */
 const inputVisivel = document.getElementById('nascimento'); // mostra DD/MM/YYYY
+/** @type {HTMLInputElement} */
 const inputISO = document.getElementById('nascimento-iso'); // armazena YYYY-MM-DD 00:00:00
 
+/**
+ * Sincroniza campos de data (visível e ISO) e atualiza o calendário.
+ * @param {Date} date
+ */
 function setDate(date) {
     if (date instanceof Date && !isNaN(date)) {
         // Formato brasileiro no input visível
@@ -636,6 +762,7 @@ function setDate(date) {
 }
 
 // Inicializa Pikaday
+// Instância do componente de calendário (Pikaday)
 const picker = new Pikaday({
     field: inputVisivel,
     format: 'DD/MM/YYYY',
@@ -661,6 +788,7 @@ const picker = new Pikaday({
 });
 
 // Atualização manual pelo input
+// Sincroniza digitação manual com o calendário e o campo oculto ISO
 inputVisivel.addEventListener('input', () => {
     let valor = inputVisivel.value.replace(/\D/g, ''); // remove tudo que não for número
 
@@ -787,6 +915,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
 
     // -------------------- Mostrar dados no alerta --------------------
     if (valido) {
+        // Coleta e normalização dos dados do formulário para exibição e envio
         const nome = document.getElementById('nome').value;
         const sobrenome = document.getElementById('sobrenome').value;
 
@@ -1017,6 +1146,11 @@ function esconderSpinner() {
 
 
 // Função genérica para traduzir palavras usando LibreTranslate
+/**
+ * Traduz termos comuns por dicionário local (fallback para o original).
+ * @param {string[]} palavras
+ * @returns {Promise<Array<{ original: string, traduzido: string }>>}
+ */
 async function traduzirPalavras(palavras) {
     // 1. Tabela interna de termos comuns (manual, sem JSON externo)
     const dicionarioBase = {
@@ -1048,17 +1182,31 @@ async function traduzirPalavras(palavras) {
 
 
 
+/**
+ * Preenche seleções e ids com base nos parâmetros UTM.
+ * Também inicializa 1 e-mail e 1 telefone.
+ * @param {ParametrosURL} parametros
+ */
 async function preencherDropdown(parametros) {
     if (parametros.tipoIntercambio && parametros.cl && parametros.anuncio) {
-        indiceSigla = siglaProduto.indexOf(parametros.tipoIntercambio);
-        indiceSiglaCL = escritorios.indexOf(parametros.cl);
+        // Produto: com a nova estrutura [{sigla, nome}], localiza o índice pela sigla
+        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.tipoIntercambio);
+        indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
         idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
 
+        // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
-        idCL = todasAiesecs.filter((_, index) => index === indiceSiglaCL).map(i => i.id);
+        const entryCL = escritorios.find(e => e.sigla === parametros.cl);
+        if (entryCL) {
+            const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
+            idCL = idxCL >= 0 ? [todasAiesecs[idxCL].id] : [];
+        } else {
+            idCL = [];
+        }
 
+        // Como conheceu: mantém correspondência por slug
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
@@ -1083,13 +1231,14 @@ async function preencherDropdown(parametros) {
         },
         []
     )
+    // Forma de anúncio: mantém comparação por slug
     idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio)).map(opcoes => opcoes.id);
-
-
-
-
 }
 
+/**
+ * Lê e normaliza parâmetros relevantes da URL.
+ * @returns {Promise<ParametrosURL>}
+ */
 async function ParamentroURL() {
     const params = new URLSearchParams(window.location.search);
     const rota = slugify((params.get("rota") || ""))
@@ -1107,6 +1256,11 @@ async function ParamentroURL() {
         rota
     };
 }
+/**
+ * Converte string para slug: minúsculas, sem acentos, com hífens e barras.
+ * @param {string} texto
+ * @returns {string}
+ */
 function slugify(texto) {
     return texto
         .toLowerCase()                       // tudo minúsculo

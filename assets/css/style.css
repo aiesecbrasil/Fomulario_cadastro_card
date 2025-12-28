@@ -1,3 +1,7 @@
+/*
+  Layout principal do formulário:
+  - Define tipografia, largura máxima e caixa com sombra para melhor legibilidade.
+*/
 body {
     font-family: 'Arial', sans-serif;
     max-width: 650px;
@@ -17,6 +21,10 @@ h2 {
     font-weight: 600;
 }
 
+/*
+  Agrupamento de inputs com label flutuante.
+  O label movimenta conforme o estado do input (focus/placeholder-shown).
+*/
 .input-group {
     position: relative;
     margin-bottom: 22px;
@@ -52,6 +60,10 @@ h2 {
     color: #0072ce;
 }
 
+/*
+  Bloco reutilizável para e-mails e telefones (select + input + botão remover).
+  Usa flex para alinhamento e wrap para responsividade.
+*/
 .campo-multiplo {
     display: flex;
     gap: 10px;
@@ -119,6 +131,10 @@ h2 {
     margin-top: 4px;
 }
 
+/*
+  Campo de data com ícone (apenas decorativo) posicionado absoluto.
+  A sincronização com o calendário é feita via JS (Pikaday).
+*/
 .input-calendario {
     position: relative;
     max-width: 100%;
@@ -191,6 +207,9 @@ h2 {
     /* permite quebra */
 }
 
+/*
+  Ajuste do modal Bootstrap para abrir mais abaixo (30% do topo).
+*/
 .modal {
     top: 30%;
 }
@@ -292,6 +311,10 @@ button[type="submit"]:hover {
 }
 
 /* Spinner circular principal */
+/*
+  Spinner genérico independente do Bootstrap JS.
+  Pode ser usado no overlay global ou embutido em botões (ver .loading).
+*/
 .spinner-border {
     width: 3rem;
     height: 3rem;
@@ -358,6 +381,9 @@ button.loading::after {
     font-weight: 500;
 }
 
+/*
+  Responsividade básica para centralizar melhor o aviso de copyright.
+*/
 @media (max-width: 768px) {
     .copyright {
         margin: 20px;
