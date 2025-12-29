@@ -5,8 +5,8 @@
  * @typedef {{ id: string|number, text: string, status?: string }} OptionItem
  * @typedef {{ label: string, config: { settings: { options?: OptionItem[], possible_types?: string[] } } }} Campo
  * @typedef {{
- *   cl: string,
- *   tipoIntercambio: string,
+ *   comite: string,
+ *   produto: string,
  *   campanha: string,
  *   anuncio: string,
  *   formaAnuncio: string,
@@ -59,11 +59,11 @@ const escritorios = [
 ];
 let campos;
 let idProduto = [];
-let idCL = [];
+let idComite = [];
 let idAnuncio = [];
 let listaAnuncio;
 let indiceComoConheceuAiesec;
-let indiceSiglaCL;
+let indiceSiglaComite;
 let indiceSigla;
 let parametros;
 let idFormaAnuncio;
@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
-        criarCampos(parametros.tipoIntercambio, parametros.cl, parametros.anuncio, parametros.rota);
+        criarCampos(parametros.produto, parametros.comite, parametros.anuncio, parametros.rota);
 
         preencherDropdown(parametros);
     } catch (error) {
@@ -334,11 +334,11 @@ document.addEventListener("DOMContentLoaded", async () => {
  * parâmetros UTM correspondentes.
  *
  * @param {string|undefined} programa Sigla do produto (ex: 'gv')
- * @param {string|undefined} cl Sigla do comitê local (ex: 'RJ')
+ * @param {string|undefined} comite Sigla do comitê local (ex: 'RJ')
  * @param {string|undefined} anuncio Slug de "Como conheceu"
  * @param {string|undefined} rota Slug da rota (pode pré-selecionar produto)
  */
-function criarCampos(programa, cl, anuncio, rota) {
+function criarCampos(programa, comite, anuncio, rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
     const conheceAiesec = document.getElementById("conheceAiesec");
@@ -418,7 +418,7 @@ function criarCampos(programa, cl, anuncio, rota) {
         //________________________________________________________________________________________________
 
     }
-    if (!cl) {
+    if (!comite) {
         aiesec.innerHTML = `
         <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
         `;
@@ -432,8 +432,8 @@ function criarCampos(programa, cl, anuncio, rota) {
         }, []);
 
         // Localiza o índice do CL com base na sigla (utm_term) e compara por nome por extenso 
-        const entryCL = escritorios.find(e => e.sigla === cl);
-        indiceSiglaCL = entryCL ? todasAiesecs.findIndex(
+        const entryCL = escritorios.find(e => e.sigla === comite);
+        indiceSiglaComite = entryCL ? todasAiesecs.findIndex(
             o => slugify(o.text) === slugify(entryCL.nome) || slugify(o.text)
                 .includes(slugify(entryCL.nome))) : -1;
 
@@ -444,7 +444,7 @@ function criarCampos(programa, cl, anuncio, rota) {
             hiddenId: 'aiesec',
             placeholder: 'Digite ou selecione',
             options: todasAiesecs,
-            preselectIndex: indiceSiglaCL >= 0 ? indiceSiglaCL : undefined
+            preselectIndex: indiceSiglaComite >= 0 ? indiceSiglaComite : undefined
         });
 
         aiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
@@ -897,7 +897,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
         } else if (campo && campo.value !== "" && id === "aiesec") {
             const hiddenAiesec = document.getElementById('aiesec');
-            idCL.push(hiddenAiesec.value);
+            idComite.push(hiddenAiesec.value);
         } else if (campo && campo.value !== "" && id === "conheceu") {
             const hiddenConheceu = document.getElementById('conheceu');
             idAnuncio.push(hiddenConheceu.value);
@@ -1013,7 +1013,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             telefones: telefonesEnvio,
                             dataNascimento: inputISO.value,
                             idProduto: idProduto[0],
-                            idComite: idCL[0],
+                            idComite: idComite[0],
                             idCategoria: idAnuncio[0],
                             idAutorizacao: "1",
                             idAnuncio: idFormaAnuncio[0],
@@ -1188,9 +1188,9 @@ async function traduzirPalavras(palavras) {
  * @param {ParametrosURL} parametros
  */
 async function preencherDropdown(parametros) {
-    if (parametros.tipoIntercambio && parametros.cl && parametros.anuncio) {
+    if (parametros.produto && parametros.comite && parametros.anuncio) {
         // Produto: com a nova estrutura [{sigla, nome}], localiza o índice pela sigla
-        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.tipoIntercambio);
+        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.produto);
         indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
@@ -1198,12 +1198,12 @@ async function preencherDropdown(parametros) {
 
         // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
-        const entryCL = escritorios.find(e => e.sigla === parametros.cl);
+        const entryCL = escritorios.find(e => e.sigla === parametros.comite);
         if (entryCL) {
             const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
-            idCL = idxCL >= 0 ? [todasAiesecs[idxCL].id] : [];
+            idComite = idxCL >= 0 ? [todasAiesecs[idxCL].id] : [];
         } else {
-            idCL = [];
+            idComite = [];
         }
 
         // Como conheceu: mantém correspondência por slug
@@ -1242,14 +1242,14 @@ async function preencherDropdown(parametros) {
 async function ParamentroURL() {
     const params = new URLSearchParams(window.location.search);
     const rota = slugify((params.get("rota") || ""))
-    const cl = (params.get("utm_term") || "").toUpperCase();
-    const tipoIntercambio = (params.get("utm_content") || "").toLowerCase();
+    const comite = (params.get("utm_term") || "").toUpperCase();
+    const produto = (params.get("utm_content") || "").toLowerCase();
     const campanha = decodeURIComponent(params.get("utm_campaign") || "");
     const anuncio = (params.get("utm_source") || "").toLowerCase();
     const formaAnuncio = (params.get("utm_medium") || "").toLowerCase();
     return {
-        cl,
-        tipoIntercambio,
+        comite,
+        produto,
         campanha,
         anuncio,
         formaAnuncio,
