@@ -12,6 +12,14 @@ body {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
+.stage {
+    display: none;
+}
+
+.stage.active {
+    display: block;
+}
+
 h2 {
     text-align: center;
     color: #004a99;
@@ -277,8 +285,14 @@ li.active {
     background: #dbeafe;
 }
 
-button[type="submit"] {
-    display: block;
+
+
+.prev:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.next,.prev {
     width: 100%;
     padding: 14px;
     font-size: 16px;
@@ -289,11 +303,19 @@ button[type="submit"] {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
-    margin-top: 10px;
 }
 
-button[type="submit"]:hover {
+.next:hover {
     background-color: #005a9e;
+}
+
+.progress {
+    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20px;
+    height: 30px;
+    color: #666;
 }
 
 /* ============================================================================
@@ -383,6 +405,13 @@ button.loading::after {
     color: #004a99;
     font-weight: 500;
 }
+
+@media (max-width: 767px) {
+    .stage-buttons {
+        flex-direction: column-reverse;
+    }
+}
+
 
 /*
   Responsividade básica para centralizar melhor o aviso de copyright.

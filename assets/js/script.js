@@ -57,6 +57,10 @@ const escritorios = [
     { sigla: "VT", nome: "VITÓRIA" },
     { sigla: "MC", nome: "BRASIL (NACIONAL)" }
 ];
+const stages = document.querySelectorAll(".stage");
+const btnNext = document.getElementById("btn-next");
+const btnPrev = document.getElementById("btn-prev");
+const TOTAL_STAGES = stages.length;
 let campos;
 let idProduto = [];
 let idComite = [];
@@ -73,6 +77,7 @@ let meioDivulgacao;
 let todosProdutos;
 let todasAiesecs;
 let todasOpcoes_Como_Conheceu;
+let currentStage = 0; // começa no primeiro stage
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
 
@@ -584,7 +589,9 @@ function validarEmailComProvedor(input) {
             camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)")
         } else {
             erro.textContent = ""; // Tudo certo
-        }*/
+        }*/else {
+            document.getElementById('erro-email').textContent = "";
+        }
     });
 }
 // -------------------- Validação de nome/sobrenome --------------------
@@ -817,114 +824,9 @@ inputVisivel.addEventListener('input', () => {
 // -------------------- Validação geral no envio --------------------
 document.getElementById('meuForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    let valido = true;
-    const camposErro = [];
-
-    // Nome e sobrenome
-    ['nome', 'sobrenome'].forEach(id => {
-        const input = document.getElementById(id);
-        const regex = /^[A-Za-zÀ-ÿ\s]+$/;
-        if (!regex.test(input.value.trim())) {
-            document.getElementById('erro-' + id).textContent = "Campo inválido.";
-            valido = false;
-            camposErro.push(`${id} Inválido`)
-        } else {
-            document.getElementById('erro-' + id).textContent = "";
-        }
-    });
-    
-    if (!validarSenha(document.getElementById('password').value).senhaValida) {
-        valido = false;
-        camposErro.push(document.getElementById('password').value.length > 0 ? "Senha Inválida"
-        : "A senha não pode ser vazia");
-    } else {
-        document.getElementById('password').textContent = "";
-    }
-
-    // Email
-    document.querySelectorAll('input[name="email[]"]').forEach(input => {
-        const valor = input.value.trim();
-        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
-
-        if (!regex.test(valor)) {
-            document.getElementById('erro-email').textContent = "E-mail inválido.";
-            valido = false;
-            camposErro.push("E-mail Inválido");
-        } /*else {
-            // Checa provedor
-            const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
-            const dominio = valor.split('@')[1].toLowerCase();
-            if (!provedores.includes(dominio)) {
-                document.getElementById('erro-email').textContent = "Use um e-mail de provedor comum (ex: gmail.com, hotmail.com, icloud.com, outlook.com)";
-                valido = false;
-                camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)");
-            } else {
-                document.getElementById('erro-email').textContent = "";
-            }
-        }*/
-    });
-
-
-    // Telefone
-    document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
-        const valor = input.value.trim();
-        const erro = document.getElementById('erro-telefone');
-        const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
-
-        if (!regex.test(valor)) {
-            erro.textContent = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
-            valido = false;
-            camposErro.push("Telefone Inválido")
-        } else {
-            erro.textContent = "";
-        }
-    });
-
-    // Data
-    if (!inputISO.value) {
-        document.getElementById('erro-nascimento').textContent = "Data inválida.";
-        valido = false;
-        camposErro.push("Data Inválida")
-    } else {
-        document.getElementById('erro-nascimento').textContent = "";
-    }
-
-    ['produto', 'aiesec', 'conheceu'].forEach(id => {
-        const campo = document.getElementById(id);
-
-        // Se o campo não existe, consideramos "válido"
-        if (!campo) return;
-
-        if (campo.value === "") {
-            document.getElementById('erro-' + id).textContent = "Selecione uma opção.";
-            valido = false;
-            camposErro.push(`Selecione uma opção de ${id}.`);
-        } else {
-            document.getElementById('erro-' + id).textContent = "";
-        }
-        if (campo && campo.value !== "" && id === "produto") {
-            produtoSolicitado = document.getElementById('produto');
-            idProduto.push(produtoSolicitado.options[produtoSolicitado.selectedIndex].value);
-        } else if (campo && campo.value !== "" && id === "aiesec") {
-            const hiddenAiesec = document.getElementById('aiesec');
-            idComite.push(hiddenAiesec.value);
-        } else if (campo && campo.value !== "" && id === "conheceu") {
-            const hiddenConheceu = document.getElementById('conheceu');
-            idAnuncio.push(hiddenConheceu.value);
-        }
-    });
-
-    // Checkbox
-    if (!document.getElementById('politica').checked) {
-        document.getElementById('erro-politica').textContent = "Você deve aceitar.";
-        valido = false;
-        camposErro.push("você de aceitas o termo")
-    } else {
-        document.getElementById('erro-politica').textContent = "";
-    }
 
     // -------------------- Mostrar dados no alerta --------------------
-    if (valido) {
+    if (validarDadosObrigatorios()) {
         // Coleta e normalização dos dados do formulário para exibição e envio
         const nome = document.getElementById('nome').value;
         const sobrenome = document.getElementById('sobrenome').value;
@@ -1077,9 +979,158 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                 }
             })
         });
+    }
+});
+
+function validarDadosObrigatorios() {
+    let valido = true;
+    const camposErro = [];
+    // 🔹 LIMPA ARRAYS (ESSENCIAL)
+    idProduto.length = 0;
+    idComite.length = 0;
+    idAnuncio.length = 0;
+    // Nome e sobrenome
+    const camposTexto = {
+        nome: {
+            label: "Nome",
+            erro: "Nome inválido."
+        },
+        sobrenome: {
+            label: "Sobrenome",
+            erro: "Sobrenome inválido."
+        }
+    };
+    Object.entries(camposTexto).forEach(([id, config]) => {
+        const input = document.getElementById(id);
+        const regex = /^[A-Za-zÀ-ÿ\s]+$/;
+        // se não existir, ignora
+        if (!input) return;
+
+        const valor = input.value.trim();
+        const erroEl = document.getElementById(`erro-${id}`);
+
+        if (!regex.test(valor)) {
+            erroEl.textContent = config.erro;
+            valido = false;
+            camposErro.push(`${config.label} inválido`);
+        } else {
+            erroEl.textContent = "";
+        }
+    });
+
+    if (!validarSenha(document.getElementById('password').value).senhaValida) {
+        valido = false;
+        camposErro.push(document.getElementById('password').value.length > 0 ? "Senha Inválida"
+            : "A senha não pode ser vazia");
+        document.getElementById('erro-senha').textContent = document.getElementById('password').value.length > 0 ? "Senha Inválida"
+            : "A senha não pode ser vazia";
+    } else {
+        document.getElementById('erro-senha').textContent = "";
+    }
+
+    // Email
+    document.querySelectorAll('input[name="email[]"]').forEach(input => {
+        const valor = input.value.trim();
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
+
+        if (!regex.test(valor)) {
+            document.getElementById('erro-email').textContent = "E-mail inválido.";
+            valido = false;
+            camposErro.push("E-mail Inválido");
+        } /*else {
+            // Checa provedor
+            const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
+            const dominio = valor.split('@')[1].toLowerCase();
+            if (!provedores.includes(dominio)) {
+                document.getElementById('erro-email').textContent = "Use um e-mail de provedor comum (ex: gmail.com, hotmail.com, icloud.com, outlook.com)";
+                valido = false;
+                camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)");
+            } else {
+                document.getElementById('erro-email').textContent = "";
+            }
+        }*/else {
+            document.getElementById('erro-email').textContent = "";
+        }
+    });
+
+
+    // Telefone
+    document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
+        const valor = input.value.trim();
+        const erro = document.getElementById('erro-telefone');
+        const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
+
+        if (!regex.test(valor)) {
+            erro.textContent = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
+            valido = false;
+            camposErro.push("Telefone Inválido")
+        } else {
+            erro.textContent = "";
+        }
+    });
+
+    // Data
+    if (!inputISO.value) {
+        document.getElementById('erro-nascimento').textContent = "Data inválida.";
+        valido = false;
+        camposErro.push("Data Inválida")
+    } else {
+        document.getElementById('erro-nascimento').textContent = "";
+    }
+
+    const camposSelect = {
+        produto: {
+            textErro: "programa",
+            onValid: (campo) => {
+                idProduto.push(
+                    campo.value
+                );
+            }
+        },
+        aiesec: {
+            textErro: "qual é o escritório mais próximo de você",
+            onValid: (campo) => {
+                idComite.push(campo.value);
+            }
+        },
+        conheceu: {
+            textErro: "por onde conheceu a aiesec",
+            onValid: (campo) => {
+                idAnuncio.push(campo.value);
+            }
+        }
+    };
+    Object.entries(camposSelect).forEach(([id, config]) => {
+        const campo = document.getElementById(id);
+        if (!campo) return;
+
+        const erroEl = document.getElementById(`erro-${id}`);
+
+        if (!campo.value) {
+            erroEl.textContent = `Selecione ou digite uma opção de ${config.textErro}.`;
+            valido = false;
+            camposErro.push(`Selecione ou digite uma opção de ${config.textErro}.`);
+            return;
+        }
+
+        erroEl.textContent = "";
+        config.onValid?.(campo);
+    });
+
+
+    // Checkbox
+    if (!document.getElementById('politica').checked) {
+        document.getElementById('erro-politica').textContent = "Você deve aceitar.";
+        valido = false;
+        camposErro.push("você deve aceitar o termo")
+    } else {
+        document.getElementById('erro-politica').textContent = "";
+    }
+    if (valido) {
+        return true;
     } else {
         // Modal de erro (via função reutilizável)
-        showModal({
+        return showModal({
             title: "Dados incorretos.",
             message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')
                 }`,
@@ -1089,8 +1140,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
             cancelText: "Corrigir"
         });
     }
-
-});
+}
 
 // ============================================================================
 // -------------------- FUNÇÕES DE CONTROLE DO SPINNER ------------------------
@@ -1342,7 +1392,8 @@ function validarSenha(senha) {
     const naoEstaVazia = senha.length > 0;
 
     const regras = {
-        tamanhoMinimo: naoEstaVazia && senha.length >= 8,
+        naoEstaVazia: naoEstaVazia,
+        tamanhoMinimo: senha.length >= 8,
         letraMaiuscula: /[A-Z]/.test(senha),
         letraMinuscula: /[a-z]/.test(senha),
         numero: /\d/.test(senha),
@@ -1377,24 +1428,29 @@ function iniciarValidacaoSenha(idSenha, idFeedback) {
 
         const mensagens = [];
 
-        if (!resultado.tamanhoMinimo) {
-            mensagens.push(`<li class="text-danger">Mínimo de 8 caracteres</li>`);
-        }
+        if (!resultado.naoEstaVazia) {
+            mensagens.push(`<li class="text-danger">A senha não pode ser vazia</li>`);
+        } else {
 
-        if (!resultado.letraMaiuscula) {
-            mensagens.push(`<li class="text-danger">Letra maiúscula</li>`);
-        }
+            if (!resultado.tamanhoMinimo) {
+                mensagens.push(`<li class="text-danger">Mínimo de 8 caracteres</li>`);
+            }
 
-        if (!resultado.letraMinuscula) {
-            mensagens.push(`<li class="text-danger">Letra minúscula</li>`);
-        }
+            if (!resultado.letraMaiuscula) {
+                mensagens.push(`<li class="text-danger">Letra maiúscula</li>`);
+            }
 
-        if (!resultado.numero) {
-            mensagens.push(`<li class="text-danger">Número</li>`);
-        }
+            if (!resultado.letraMinuscula) {
+                mensagens.push(`<li class="text-danger">Letra minúscula</li>`);
+            }
 
-        if (!resultado.caractereEspecial) {
-            mensagens.push(`<li class="text-danger">Caractere especial</li>`);
+            if (!resultado.numero) {
+                mensagens.push(`<li class="text-danger">Número</li>`);
+            }
+
+            if (!resultado.caractereEspecial) {
+                mensagens.push(`<li class="text-danger">Caractere especial</li>`);
+            }
         }
 
         feedback.innerHTML = mensagens.length
@@ -1403,3 +1459,63 @@ function iniciarValidacaoSenha(idSenha, idFeedback) {
 
     });
 }
+
+function updateProgress() {
+    document.getElementById("progress").innerText =
+        `Etapa ${currentStage + 1} de ${TOTAL_STAGES}`;
+}
+
+function showStage(index) {
+    stages.forEach((stage, i) => {
+        stage.classList.toggle("active", i === index);
+    });
+
+    currentStage = index;
+    toggleStageInputs(index);
+    updateProgress();
+    updateButtons();
+}
+
+
+function updateButtons() {
+    btnPrev.disabled = currentStage === 0;
+
+    // Último stage → muda texto do botão
+    if (currentStage === TOTAL_STAGES - 1) {
+        btnNext.textContent = "Enviar";
+    } else {
+        btnNext.textContent = "Continuar";
+    }
+}
+
+function toggleStageInputs(activeIndex) {
+    stages.forEach((stage, index) => {
+        const inputs = stage.querySelectorAll("input, select, textarea");
+
+        inputs.forEach(input => {
+            input.disabled = index !== activeIndex;
+        });
+    });
+}
+
+
+btnNext.addEventListener("click", () => {
+    if (validarDadosObrigatorios()) {
+        // Se não for o último stage, apenas avança
+        if (currentStage < TOTAL_STAGES - 1) {
+            showStage(currentStage + 1);
+        } else {
+            // Último stage → dispara submit real
+            document.getElementById("meuForm").requestSubmit();
+        }
+    }
+});
+
+btnPrev.addEventListener("click", () => {
+    if (currentStage > 0) {
+        showStage(currentStage - 1);
+    }
+});
+
+// Inicializa corretamente
+showStage(0);

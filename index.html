@@ -34,127 +34,152 @@
     </head>
 
     <body>
+        <div class="progress" id="progress"></div>
         <form id="meuForm"
             aria-describedby="erro-nome erro-sobrenome erro-email erro-telefone erro-nascimento erro-politica">
-            <!-- Nome e Sobrenome -->
-            <div class="row">
-                <div class="col-12 col-md-6">
-                    <div class="input-group">
-                        <input type="text" id="nome" placeholder=" " required
-                            aria-required="true" aria-describedby="erro-nome" />
-                        <label for="nome">Nome *</label>
-                        <span class="error-msg" id="erro-nome" role="alert"
-                            aria-live="polite"></span>
+
+            <div class="stage active" data-stage="1">
+                <!-- Nome e Sobrenome -->
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="nome" placeholder=" "
+                                required
+                                aria-required="true"
+                                aria-describedby="erro-nome" />
+                            <label for="nome">Nome *</label>
+                            <span class="error-msg" id="erro-nome" role="alert"
+                                aria-live="polite"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="sobrenome" placeholder=" "
+                                required
+                                aria-required="true"
+                                aria-describedby="erro-sobrenome" />
+                            <label for="sobrenome">Sobrenome *</label>
+                            <span class="error-msg" id="erro-sobrenome"
+                                role="alert"
+                                aria-live="polite"></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-12 col-md-6">
+                <div class="mb-3">
                     <div class="input-group">
-                        <input type="text" id="sobrenome" placeholder=" "
-                            required
-                            aria-required="true"
-                            aria-describedby="erro-sobrenome" />
-                        <label for="sobrenome">Sobrenome *</label>
-                        <span class="error-msg" id="erro-sobrenome" role="alert"
-                            aria-live="polite"></span>
+                        <input type="password" class="form-control"
+                            id="password"
+                            placeholder>
+                        <label for="password" class="form-label">Senha *</label>
+                        <span class="input-group-text" id="togglePassword"
+                            style="cursor: pointer;">
+                            <i class="bi bi-eye"></i>
+                        </span>
+                    </div>
+                    <span class="error-msg" id="erro-senha" role="alert"
+                        aria-live="polite"></span>
+                </div>
+
+                <!-- Emails -->
+                <label for="emails-container">Email *</label>
+                <div id="emails-container" aria-describedby="erro-email">
+                    <div class="campo-multiplo">
+                        <!-- Preenchido dinamicamente com tipos pelo JS -->
+                        <select name="emailTipo[]"></select>
+                        <input type="email" name="email[]"
+                            placeholder="Email" />
+                        <button type="button" class="remove-btn"
+                            onclick="removeCampo(this, 'email')"
+                            aria-label="Remover email">✖</button>
                     </div>
                 </div>
-            </div>
+                <button type="button" id="email" class="add-btn"
+                    onclick="addEmail()"
+                    aria-label="Adicionar outro email">Adicionar outro</button>
+                <div class="error-msg" id="erro-email" role="alert"
+                    aria-live="polite"></div>
 
-            <div class="mb-3">
-                <div class="input-group">
-                    <input type="password" class="form-control" id="password"
-                        placeholder>
-                    <label for="password" class="form-label">Senha *</label>
-                    <span class="input-group-text" id="togglePassword"
-                        style="cursor: pointer;">
-                        <i class="bi bi-eye"></i>
-                    </span>
+                <!-- Telefones -->
+                <label for="telefones-container">Telefone *</label>
+                <div id="telefones-container" aria-describedby="erro-telefone">
+                    <div class="campo-multiplo">
+                        <!-- Preenchido dinamicamente com tipos pelo JS -->
+                        <select name="TelefoneTipo[]"></select>
+                        <input type="tel" name="telefone[]"
+                            placeholder="Telefone" />
+                        <button type="button" class="remove-btn"
+                            onclick="removeCampo(this, 'telefone')"
+                            aria-label="Remover telefone">✖</button>
+                    </div>
                 </div>
-                <span class="error-msg" id="erro-senha" role="alert"
-                    aria-live="polite"></span>
-            </div>
+                <button type="button" class="add-btn" id="telefone"
+                    onclick="addTelefone()"
+                    aria-label="Adicionar outro telefone">Adicionar
+                    outro</button>
+                <div class="error-msg" id="erro-telefone" role="alert"
+                    aria-live="polite"></div>
 
-            <!-- Emails -->
-            <label for="emails-container">Email *</label>
-            <div id="emails-container" aria-describedby="erro-email">
-                <div class="campo-multiplo">
-                    <!-- Preenchido dinamicamente com tipos pelo JS -->
-                    <select name="emailTipo[]"></select>
-                    <input type="email" name="email[]" placeholder="Email" />
-                    <button type="button" class="remove-btn"
-                        onclick="removeCampo(this, 'email')"
-                        aria-label="Remover email">✖</button>
-                </div>
-            </div>
-            <button type="button" id="email" class="add-btn"
-                onclick="addEmail()"
-                aria-label="Adicionar outro email">Adicionar outro</button>
-            <div class="error-msg" id="erro-email" role="alert"
-                aria-live="polite"></div>
-
-            <!-- Telefones -->
-            <label for="telefones-container">Telefone *</label>
-            <div id="telefones-container" aria-describedby="erro-telefone">
-                <div class="campo-multiplo">
-                    <!-- Preenchido dinamicamente com tipos pelo JS -->
-                    <select name="TelefoneTipo[]"></select>
-                    <input type="tel" name="telefone[]"
-                        placeholder="Telefone" />
-                    <button type="button" class="remove-btn"
-                        onclick="removeCampo(this, 'telefone')"
-                        aria-label="Remover telefone">✖</button>
-                </div>
-            </div>
-            <button type="button" class="add-btn" id="telefone"
-                onclick="addTelefone()"
-                aria-label="Adicionar outro telefone">Adicionar outro</button>
-            <div class="error-msg" id="erro-telefone" role="alert"
-                aria-live="polite"></div>
-
-            <!-- Data de nascimento -->
-            <label for="nascimento">Data de Nascimento *</label>
-            <div class="input-calendario">
-                <!--
+                <!-- Data de nascimento -->
+                <label for="nascimento">Data de Nascimento *</label>
+                <div class="input-calendario">
+                    <!--
                   Campo visível no formato brasileiro, com sincronização para o hidden ISO via JS.
                 -->
-                <input type="text" id="nascimento" placeholder="DD/MM/YYYY"
-                    maxlength="10" aria-describedby="erro-nascimento" />
-                <span aria-hidden="true">📅</span>
-            </div>
-            <input type="hidden" id="nascimento-iso" name="nascimento" />
-            <div class="error-msg" id="erro-nascimento" role="alert"
-                aria-live="polite"></div>
-            <!-- Produto -->
-            <div id="produtos" class="input-extra"></div>
-
-            <!-- AIESEC mais próxima -->
-            <div id="aiesecs" class="input-extra"></div>
-
-            <!-- Como conheceu -->
-            <div id="conheceAiesec" class="input-extra">
-                <!-- Conteúdo será injetado dinamicamente pelo JS quando necessário. -->
-            </div>
-
-            <!-- Checkbox Política de Privacidade -->
-            <div class="input-extra checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="politica" name="politica"
-                        required aria-required="true" />
-                    <span><strong>Eu concordo com a coleta e uso dos meus dados
-                            conforme a Política de Privacidade *</strong></span>
-                </label>
-                <div class="checkbox-msg">
-                    Estamos coletando seus dados para enviar informações sobre
-                    oportunidades de intercâmbio. Seus dados serão tratados
-                    conforme a LGPD e não serão compartilhados sem
-                    consentimento.
+                    <input type="text" id="nascimento" placeholder="DD/MM/YYYY"
+                        maxlength="10" aria-describedby="erro-nascimento" />
+                    <span aria-hidden="true">📅</span>
                 </div>
-                <div class="error-msg" id="erro-politica" role="alert"
+                <input type="hidden" id="nascimento-iso" name="nascimento" />
+                <div class="error-msg" id="erro-nascimento" role="alert"
                     aria-live="polite"></div>
+                <!-- Produto -->
+                <div id="produtos" class="input-extra"></div>
+
+                <!-- AIESEC mais próxima -->
+                <div id="aiesecs" class="input-extra"></div>
+
+                <!-- Como conheceu -->
+                <div id="conheceAiesec" class="input-extra">
+                    <!-- Conteúdo será injetado dinamicamente pelo JS quando necessário. -->
+                </div>
+
+                <!-- Checkbox Política de Privacidade -->
+                <div class="input-extra checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="politica" name="politica"
+                            required aria-required="true" />
+                        <span><strong>Eu concordo com a coleta e uso dos meus
+                                dados
+                                conforme a Política de Privacidade
+                                *</strong></span>
+                    </label>
+                    <div class="checkbox-msg">
+                        Estamos coletando seus dados para enviar informações
+                        sobre
+                        oportunidades de intercâmbio. Seus dados serão tratados
+                        conforme a LGPD e não serão compartilhados sem
+                        consentimento.
+                    </div>
+                    <div class="error-msg" id="erro-politica" role="alert"
+                        aria-live="polite"></div>
+                </div>
+            </div>
+            <div class="stage" data-stage="2"></div>
+            <div class="stage-controls">
+                <div class="row g-2 stage-buttons">
+                    <div class="col-12 col-md-6">
+                        <button class="prev" type="button" id="btn-prev"
+                            disabled>Voltar</button>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <button class="next" type="button"
+                            id="btn-next">Continuar</button>
+                    </div>
+                </div>
             </div>
 
-            <button type="submit" id="botaoSubmit">Enviar</button>
         </form>
         <span class="copyright">&copy; AIESEC no Brasil - 2025</span>
         <!-- Modal -->
