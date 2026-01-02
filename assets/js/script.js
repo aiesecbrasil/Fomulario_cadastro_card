@@ -61,7 +61,7 @@ const stages = document.querySelectorAll(".stage");
 const btnNext = document.getElementById("btn-next");
 const btnPrev = document.getElementById("btn-prev");
 const TOTAL_STAGES = stages.length;
-const idiomaSelecionados = []; 
+const idiomaSelecionados = [];
 const idComite = [];
 const idProduto = [];
 const idAnuncio = [];
@@ -127,10 +127,10 @@ function buildCombo({
     `;
     container.insertAdjacentHTML('beforeend', html);
 
-    const input  = document.getElementById(inputId);
-    const list   = document.getElementById(listId);
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
     const hidden = document.getElementById(hiddenId);
-    const tags   = hasTags ? document.getElementById(`tags-${hiddenId}`) : null;
+    const tags = hasTags ? document.getElementById(`tags-${hiddenId}`) : null;
 
     function hideList() {
         list.style.display = 'none';
@@ -242,7 +242,7 @@ function buildCombo({
             hidden.value = opt.id;
         }
     }
-    
+
 }
 
 
@@ -568,33 +568,33 @@ function criarCampos(programa, comite, anuncio, rota) {
         options: todasOpcoes_idioma,
         preselectIndex: indiceIdioma >= 0 ? indiceIdioma : undefined,
         hasTags: true,
-        selecionados:idiomaSelecionados
+        selecionados: idiomaSelecionados
     });
 
-    idioma.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">' );
+    idioma.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
 
 
 }
 
 function adicionar(item) {
-  selecionados.push(item);
-  input.value = "";
-  lista.innerHTML = "";
+    selecionados.push(item);
+    input.value = "";
+    lista.innerHTML = "";
 
-  const tag = document.createElement("span");
-  tag.textContent = item;
+    const tag = document.createElement("span");
+    tag.textContent = item;
 
-  const btn = document.createElement("button");
-  btn.textContent = "×";
-  btn.onclick = () => remover(item, tag);
+    const btn = document.createElement("button");
+    btn.textContent = "×";
+    btn.onclick = () => remover(item, tag);
 
-  tag.appendChild(btn);
-  tags.appendChild(tag);
+    tag.appendChild(btn);
+    tags.appendChild(tag);
 }
 
 function remover(item, tag) {
-  selecionados = selecionados.filter(i => i !== item);
-  tag.remove();
+    selecionados = selecionados.filter(i => i !== item);
+    tag.remove();
 }
 
 // -------------------- Máscara e validação de telefone --------------------
@@ -1025,33 +1025,35 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
             // Aguarda o modal terminar de fechar
             modal.addEventListener('hidden.bs.modal', async function handler() {
                 modal.removeEventListener('hidden.bs.modal', handler);
+                const data = {
+                    nome,
+                    sobrenome,
+                    emails: emailsEnvio,
+                    telefones: telefonesEnvio,
+                    dataNascimento: inputISO.value,
+                    idProduto: idProduto,
+                    idComite: idComite,
+                    idCategoria: idAnuncio,
+                    idAutorizacao: "1",
+                    idAnuncio: idFormaAnuncio,
+                    tag: slugify(parametros.campanha),
+                    idIdioma: idiomaSelecionados.map(idioma => idioma.id)
+                }
                 try {
-                    const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            nome,
-                            sobrenome,
-                            emails: emailsEnvio,
-                            telefones: telefonesEnvio,
-                            dataNascimento: inputISO.value,
-                            idProduto: idProduto,
-                            idComite: idComite,
-                            idCategoria: idAnuncio,
-                            idAutorizacao: "1",
-                            idAnuncio: idFormaAnuncio,
-                            tag: slugify(parametros.campanha)
-                        }),
+                        body: JSON.stringify(data),
                     });
 
                     if (!response.ok) {
                         let backend = null;
                         try { backend = await response.json(); } catch (_) { backend = null; }
                         throw { status: response.status, backend };
-                    }
+                    }*/
 
                     esconderSpinner();
-
+                    console.log(data)
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
@@ -1407,7 +1409,7 @@ async function preencherDropdown(parametros) {
         indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
-        const entryProduto =  siglaProduto.find(p => p.sigla === parametros.produto);
+        const entryProduto = siglaProduto.find(p => p.sigla === parametros.produto);
         if (entryProduto) {
             const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));
             idProduto.push(idxProduto >= 0 ? todosProdutos[idxProduto].id : null);
@@ -1455,7 +1457,7 @@ async function preencherDropdown(parametros) {
     )
     // Forma de anúncio: mantém comparação por slug
     const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
-    if(entryTipoAnuncio){
+    if (entryTipoAnuncio) {
         idFormaAnuncio.push(entryTipoAnuncio.id);
     } else {
         idFormaAnuncio.push(null);
