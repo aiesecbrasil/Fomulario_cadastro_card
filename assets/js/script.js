@@ -61,16 +61,18 @@ const stages = document.querySelectorAll(".stage");
 const btnNext = document.getElementById("btn-next");
 const btnPrev = document.getElementById("btn-prev");
 const TOTAL_STAGES = stages.length;
+const idiomaSelecionados = []; 
+const idComite = [];
+const idProduto = [];
+const idAnuncio = [];
+const idFormaAnuncio = [];
 let campos;
-let idProduto = [];
-let idComite = [];
-let idAnuncio = [];
 let listaAnuncio;
 let indiceComoConheceuAiesec;
 let indiceSiglaComite;
 let indiceSigla;
+let indiceIdioma = -1;
 let parametros;
-let idFormaAnuncio;
 let produtoSolicitado;
 let aiesecProxima;
 let meioDivulgacao;
@@ -103,37 +105,84 @@ containerTelefone.innerHTML = '';
  * }} params
  * @returns {void}
  */
-function buildCombo({ container, inputId, listId, hiddenId, placeholder, options, preselectIndex }) {
+function buildCombo({
+    container,
+    inputId,
+    listId,
+    hiddenId,
+    placeholder,
+    options,
+    preselectIndex,
+    hasTags = false,
+    selecionados = null
+}) {
+
     const html = `
         <div class="combo">
             <input type="text" id="${inputId}" placeholder="${placeholder}" autocomplete="off">
             <ul id="${listId}" style="display:none"></ul>
         </div>
+        ${hasTags ? `<div class="tags" id="tags-${hiddenId}"></div>` : ``}
         <input type="hidden" id="${hiddenId}" value="">
     `;
     container.insertAdjacentHTML('beforeend', html);
 
-    const input = document.getElementById(inputId);
-    const list = document.getElementById(listId);
+    const input  = document.getElementById(inputId);
+    const list   = document.getElementById(listId);
     const hidden = document.getElementById(hiddenId);
+    const tags   = hasTags ? document.getElementById(`tags-${hiddenId}`) : null;
 
     function hideList() {
         list.style.display = 'none';
     }
+
     function showList() {
         list.style.display = 'block';
     }
 
     function closeAllCombos() {
-        document.querySelectorAll('.combo ul').forEach(ul => {
-            ul.style.display = 'none';
-        });
+        document.querySelectorAll('.combo ul').forEach(ul => ul.style.display = 'none');
+    }
+
+    function atualizarHidden() {
+        hidden.value = hasTags
+            ? selecionados.map(o => o.id).join(',')
+            : hidden.value;
+    }
+
+    function adicionarTag(opt) {
+        if (!hasTags) return;
+
+        if (selecionados.some(o => o.id === opt.id)) return;
+
+        selecionados.push(opt);
+        atualizarHidden();
+
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = opt.text;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '×';
+        btn.onclick = () => {
+            selecionados = selecionados.filter(o => o.id !== opt.id);
+            tag.remove();
+            atualizarHidden();
+        };
+
+        tag.appendChild(btn);
+        tags.appendChild(tag);
     }
 
     function render(term = '') {
         const t = term.trim().toLowerCase();
         list.innerHTML = '';
-        const filtradas = options.filter(o => o.text.toLowerCase().includes(t));
+
+        const filtradas = options.filter(o =>
+            o.text.toLowerCase().includes(t) &&
+            (!hasTags || !selecionados.some(s => s.id === o.id))
+        );
 
         if (!filtradas.length) {
             hideList();
@@ -143,46 +192,59 @@ function buildCombo({ container, inputId, listId, hiddenId, placeholder, options
         filtradas.forEach(o => {
             const li = document.createElement('li');
             li.textContent = o.text;
+
             li.addEventListener('mouseover', () => {
                 list.querySelectorAll('li').forEach(e => e.classList.remove('active'));
                 li.classList.add('active');
             });
+
             li.addEventListener('click', () => {
-                input.value = o.text;
-                hidden.value = o.id;
+                if (hasTags) {
+                    adicionarTag(o);
+                    input.value = '';
+                } else {
+                    input.value = o.text;
+                    hidden.value = o.id;
+                }
                 hideList();
             });
+
             list.appendChild(li);
         });
+
         showList();
     }
 
-    // Digitar → filtra
+    // Eventos
     input.addEventListener('input', () => {
-        hidden.value = '';
+        if (!hasTags) hidden.value = '';
         render(input.value);
     });
 
-    // Clicar/Focar → abre lista (filtrada pelo valor atual)
     input.addEventListener('focus', () => {
-        closeAllCombos(); //fecha todos os combos antes de abrir o proximo
+        closeAllCombos();
         render(input.value);
     });
 
-    // Fecha ao clicar fora do combo
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.combo')) {
             hideList();
         }
     });
 
-    // Pré-seleção (quando houver parâmetro UTM válido)
+    // Pré-seleção
     if (typeof preselectIndex === 'number' && preselectIndex >= 0 && preselectIndex < options.length) {
         const opt = options[preselectIndex];
-        input.value = opt.text;
-        hidden.value = opt.id;
+        if (hasTags) {
+            adicionarTag(opt);
+        } else {
+            input.value = opt.text;
+            hidden.value = opt.id;
+        }
     }
+    
 }
+
 
 /**
  * Exibe um modal padronizado de acordo com elementos Bootstrap existentes no DOM.
@@ -349,6 +411,7 @@ function criarCampos(programa, comite, anuncio, rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
     const conheceAiesec = document.getElementById("conheceAiesec");
+    const idiomas = document.getElementById("idiomas");
 
     if (!programa) {
         programas.innerHTML = `
@@ -484,6 +547,54 @@ function criarCampos(programa, comite, anuncio, rota) {
 
         conheceAiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
+    idiomas.innerHTML = `
+        <label for="combo-input-idioma">Selecione ou digite os idiomas que você sabe falar</label>
+        `;
+
+    const idiomasConhece = campos.find(field => field.external_id === "possui-outro-idioma");
+    const opçoes_idioma = idiomasConhece.config.settings.options;
+
+    todasOpcoes_idioma = opçoes_idioma.reduce((prev, curr) => {
+        if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
+        return prev;
+    }, []);
+
+    buildCombo({
+        container: idiomas,
+        inputId: 'combo-input-idioma',
+        listId: 'combo-list-idioma',
+        hiddenId: 'idioma',
+        placeholder: 'Digite ou selecione',
+        options: todasOpcoes_idioma,
+        preselectIndex: indiceIdioma >= 0 ? indiceIdioma : undefined,
+        hasTags: true,
+        selecionados:idiomaSelecionados
+    });
+
+    idioma.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">' );
+
+
+}
+
+function adicionar(item) {
+  selecionados.push(item);
+  input.value = "";
+  lista.innerHTML = "";
+
+  const tag = document.createElement("span");
+  tag.textContent = item;
+
+  const btn = document.createElement("button");
+  btn.textContent = "×";
+  btn.onclick = () => remover(item, tag);
+
+  tag.appendChild(btn);
+  tags.appendChild(tag);
+}
+
+function remover(item, tag) {
+  selecionados = selecionados.filter(i => i !== item);
+  tag.remove();
 }
 
 // -------------------- Máscara e validação de telefone --------------------
@@ -924,11 +1035,11 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
                             dataNascimento: inputISO.value,
-                            idProduto: idProduto[0],
-                            idComite: idComite[0],
-                            idCategoria: idAnuncio[0],
+                            idProduto: idProduto,
+                            idComite: idComite,
+                            idCategoria: idAnuncio,
                             idAutorizacao: "1",
-                            idAnuncio: idFormaAnuncio[0],
+                            idAnuncio: idFormaAnuncio,
                             tag: slugify(parametros.campanha)
                         }),
                     });
@@ -1296,23 +1407,32 @@ async function preencherDropdown(parametros) {
         indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
-        idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
+        const entryProduto =  siglaProduto.find(p => p.sigla === parametros.produto);
+        if (entryProduto) {
+            const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));
+            idProduto.push(idxProduto >= 0 ? todosProdutos[idxProduto].id : null);
+        } else {
+            idProduto.push(null);
+        }
 
         // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         const entryCL = escritorios.find(e => e.sigla === parametros.comite);
         if (entryCL) {
             const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
-            idComite = idxCL >= 0 ? [todasAiesecs[idxCL].id] : [];
+            idComite.push(idxCL >= 0 ? todasAiesecs[idxCL].id : null);
         } else {
-            idComite = [];
+            idComite.push(null);
         }
 
         // Como conheceu: mantém correspondência por slug
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
-        listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
-        indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
-        idAnuncio = todasOpcoes_Como_Conheceu.filter((_, index) => index === indiceComoConheceuAiesec).map(i => i.id);
+        const entryCategoria = todasOpcoes_Como_Conheceu.find(opcoes => slugify(opcoes.text) === parametros.anuncio);
+        if (entryCategoria) {
+            idAnuncio.push(entryCategoria.id);
+        } else {
+            idAnuncio.push(null);
+        }
     }
 
     addEmail();
@@ -1334,7 +1454,12 @@ async function preencherDropdown(parametros) {
         []
     )
     // Forma de anúncio: mantém comparação por slug
-    idFormaAnuncio = todasopçoes_Tipo_Anuncio.filter(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio)).map(opcoes => opcoes.id);
+    const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
+    if(entryTipoAnuncio){
+        idFormaAnuncio.push(entryTipoAnuncio.id);
+    } else {
+        idFormaAnuncio.push(null);
+    }
 }
 
 /**
