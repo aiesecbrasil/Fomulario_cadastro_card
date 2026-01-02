@@ -1070,7 +1070,7 @@ function validarDadosObrigatorios() {
     });
 
     // Data
-    if (!inputISO.value) {
+    if (!document.getElementById('nascimento').value) {
         document.getElementById('erro-nascimento').textContent = "Data inválida.";
         valido = false;
         camposErro.push("Data Inválida")
