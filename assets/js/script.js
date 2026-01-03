@@ -114,7 +114,8 @@ function buildCombo({
     options,
     preselectIndex,
     hasTags = false,
-    selecionados = null
+    selecionados = null,
+    filterOption = null
 }) {
 
     const html = `
@@ -145,14 +146,13 @@ function buildCombo({
     }
 
     function atualizarHidden() {
-        hidden.value = hasTags
-            ? selecionados.map(o => o.id).join(',')
-            : hidden.value;
+        if (hasTags) {
+            hidden.value = selecionados.map(o => o.id).join(',');
+        }
     }
 
     function adicionarTag(opt) {
         if (!hasTags) return;
-
         if (selecionados.some(o => o.id === opt.id)) return;
 
         selecionados.push(opt);
@@ -166,7 +166,8 @@ function buildCombo({
         btn.type = 'button';
         btn.textContent = '×';
         btn.onclick = () => {
-            selecionados = selecionados.filter(o => o.id !== opt.id);
+            const idx = selecionados.findIndex(o => o.id === opt.id);
+            if (idx > -1) selecionados.splice(idx, 1);
             tag.remove();
             atualizarHidden();
         };
@@ -179,10 +180,17 @@ function buildCombo({
         const t = term.trim().toLowerCase();
         list.innerHTML = '';
 
-        const filtradas = options.filter(o =>
-            o.text.toLowerCase().includes(t) &&
-            (!hasTags || !selecionados.some(s => s.id === o.id))
-        );
+        const filtradas = options.filter(o => {
+            if (!o.text.toLowerCase().includes(t)) return false;
+
+            if (hasTags && selecionados.some(s => s.id === o.id)) return false;
+
+            if (hasTags && typeof filterOption === 'function') {
+                return filterOption(o, selecionados);
+            }
+
+            return true;
+        });
 
         if (!filtradas.length) {
             hideList();
@@ -215,7 +223,6 @@ function buildCombo({
         showList();
     }
 
-    // Eventos
     input.addEventListener('input', () => {
         if (!hasTags) hidden.value = '';
         render(input.value);
@@ -227,12 +234,9 @@ function buildCombo({
     });
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.combo')) {
-            hideList();
-        }
+        if (!e.target.closest('.combo')) hideList();
     });
 
-    // Pré-seleção
     if (typeof preselectIndex === 'number' && preselectIndex >= 0 && preselectIndex < options.length) {
         const opt = options[preselectIndex];
         if (hasTags) {
@@ -242,8 +246,8 @@ function buildCombo({
             hidden.value = opt.id;
         }
     }
-
 }
+
 
 
 /**
@@ -563,18 +567,31 @@ function criarCampos(programa, comite, anuncio, rota) {
         container: idiomas,
         inputId: 'combo-input-idioma',
         listId: 'combo-list-idioma',
-        hiddenId: 'idioma',
+        hiddenId: 'idiomas',
         placeholder: 'Digite ou selecione',
         options: todasOpcoes_idioma,
-        preselectIndex: indiceIdioma >= 0 ? indiceIdioma : undefined,
         hasTags: true,
-        selecionados: idiomaSelecionados
+        selecionados: idiomaSelecionados,
+        filterOption: filtroIdiomas
     });
 
-    idioma.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
+
+    idiomas.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
 
 
 }
+
+function filtroIdiomas(option, selecionados) {
+    // option.text = "Português - Básico"
+    // selecionados = [{ id, text: "Português - Fluente" }]
+
+    const idiomaBase = option.text.split(' - ')[0];
+
+    return !selecionados.some(sel =>
+        sel.text.startsWith(idiomaBase + ' -')
+    );
+}
+
 
 function adicionar(item) {
     selecionados.push(item);
@@ -1028,6 +1045,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                 const data = {
                     nome,
                     sobrenome,
+                    senha,
                     emails: emailsEnvio,
                     telefones: telefonesEnvio,
                     dataNascimento: inputISO.value,
