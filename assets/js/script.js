@@ -112,7 +112,7 @@ function buildCombo({
     hiddenId,
     placeholder,
     options,
-    preselectIndex,
+    preselectIndex = null,
     hasTags = false,
     selecionados = null,
     filterOption = null
