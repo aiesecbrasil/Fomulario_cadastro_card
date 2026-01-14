@@ -1020,7 +1020,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             nome,
                             sobrenome,
                             senha,
-                            idprograma:idprograma[0],
+                            idprograma:idprograma,
                             nomeCL:aiesecTexto,
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
