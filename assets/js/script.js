@@ -61,7 +61,6 @@ let campos;
 let idProduto = [];
 let idComite = [];
 let idAnuncio = [];
-let idprograma = []
 let listaAnuncio;
 let indiceComoConheceuAiesec;
 let indiceSiglaComite;
