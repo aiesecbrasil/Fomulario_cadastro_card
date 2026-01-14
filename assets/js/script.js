@@ -22,10 +22,10 @@ const containerEmail = document.getElementById('emails-container');
 // Estruturas de produto com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'gv', nome: 'Voluntário Globa' }
 const siglaProduto = [
-    { sigla: 'gv', nome: 'Voluntário Global' },
-    { sigla: 'gtast', nome: 'Talento Global Short Term' },
-    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term' },
-    { sigla: 'gte', nome: 'Professor Global' }
+    { sigla: 'gv', nome: 'Voluntário Global',idprograma:7 },
+    { sigla: 'gtast', nome: 'Talento Global Short Term',idprograma:8 },
+    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term',idprograma:8 },
+    { sigla: 'gte', nome: 'Professor Global',idprograma:9 }
 ];
 // Estruturas de escritórios (CLs) com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'AB', nome: 'ABC' } 
@@ -61,6 +61,7 @@ let campos;
 let idProduto = [];
 let idComite = [];
 let idAnuncio = [];
+let idprograma = []
 let listaAnuncio;
 let indiceComoConheceuAiesec;
 let indiceSiglaComite;
@@ -1003,7 +1004,6 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
         // Remove listener antigo e adiciona o novo
         botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
         const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
-
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
             e.preventDefault();
             // Fecha o modal de confirmação
@@ -1019,6 +1019,9 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                         body: JSON.stringify({
                             nome,
                             sobrenome,
+                            senha,
+                            programa:idprograma[0],
+                            nomeCL:aiesecTexto,
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
                             dataNascimento: inputISO.value,
@@ -1247,7 +1250,7 @@ async function preencherDropdown(parametros) {
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
         idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
-
+        idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
         // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         const entryCL = escritorios.find(e => e.sigla === parametros.comite);
