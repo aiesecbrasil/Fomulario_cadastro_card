@@ -22,10 +22,10 @@ const containerEmail = document.getElementById('emails-container');
 // Estruturas de produto com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'gv', nome: 'Voluntário Globa' }
 const siglaProduto = [
-    { sigla: 'gv', nome: 'Voluntário Global' },
-    { sigla: 'gtast', nome: 'Talento Global Short Term' },
-    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term' },
-    { sigla: 'gte', nome: 'Professor Global' }
+    { sigla: 'gv', nome: 'Voluntário Global',idprograma:7 },
+    { sigla: 'gtast', nome: 'Talento Global Short Term',idprograma:8 },
+    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term',idprograma:8 },
+    { sigla: 'gte', nome: 'Professor Global',idprograma:9 }
 ];
 // Estruturas de escritórios (CLs) com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'AB', nome: 'ABC' } 
@@ -61,6 +61,7 @@ let campos;
 let idProduto = [];
 let idComite = [];
 let idAnuncio = [];
+let idprograma = []
 let listaAnuncio;
 let indiceComoConheceuAiesec;
 let indiceSiglaComite;
@@ -310,6 +311,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         criarCampos(parametros.produto, parametros.comite, parametros.anuncio, parametros.rota);
 
         preencherDropdown(parametros);
+        alternarVisibilidadeSenha("password", "togglePassword");
+        iniciarValidacaoSenha("password", "erro-senha");
     } catch (error) {
         // Modal de erro em caso de falha de rede/parse
         showModal({
@@ -830,6 +833,14 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             document.getElementById('erro-' + id).textContent = "";
         }
     });
+    
+    if (!validarSenha(document.getElementById('password').value).senhaValida) {
+        valido = false;
+        camposErro.push(document.getElementById('password').value.length > 0 ? "Senha Inválida"
+        : "A senha não pode ser vazia");
+    } else {
+        document.getElementById('password').textContent = "";
+    }
 
     // Email
     document.querySelectorAll('input[name="email[]"]').forEach(input => {
@@ -918,7 +929,7 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
         // Coleta e normalização dos dados do formulário para exibição e envio
         const nome = document.getElementById('nome').value;
         const sobrenome = document.getElementById('sobrenome').value;
-
+        const senha = document.getElementById('password').value;
         const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
             const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
             const textoTipoOriginal = select.value;
@@ -993,7 +1004,6 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
         // Remove listener antigo e adiciona o novo
         botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
         const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
-
         novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
             e.preventDefault();
             // Fecha o modal de confirmação
@@ -1009,6 +1019,9 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                         body: JSON.stringify({
                             nome,
                             sobrenome,
+                            senha,
+                            programa:idprograma[0],
+                            nomeCL:aiesecTexto,
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
                             dataNascimento: inputISO.value,
@@ -1180,6 +1193,48 @@ async function traduzirPalavras(palavras) {
     return traducao;
 }
 
+/**
+     * Alterna a visibilidade de um campo de senha ao clicar no ícone.
+     *
+     * @param {string} idSenha - ID do input do tipo password.
+     * @param {string} idToggle - ID do elemento que contém o ícone (Bootstrap Icon).
+     *
+     * @returns {void}
+     */
+function alternarVisibilidadeSenha(idSenha, idToggle) {
+    // Obtém o campo de senha pelo ID
+    /** @type {HTMLInputElement | null} */
+    const campoSenha = document.getElementById(idSenha);
+
+    // Obtém o container do ícone
+    /** @type {HTMLElement | null} */
+    const containerToggle = document.getElementById(idToggle);
+
+    // Se algum dos elementos não existir, interrompe a execução
+    if (!campoSenha || !containerToggle) return;
+
+    // Obtém o ícone <i> dentro do container
+    /** @type {HTMLElement | null} */
+    const icone = containerToggle.querySelector("i");
+
+    if (!icone) return;
+
+    // Listener de clique no ícone
+    icone.addEventListener("click", () => {
+        // Verifica se a senha está oculta
+        const senhaEstaOculta = campoSenha.type === "password";
+
+        // Alterna o tipo do input
+        campoSenha.type = senhaEstaOculta ? "text" : "password";
+
+        // Alterna os ícones do Bootstrap
+        icone.classList.toggle("bi-eye");
+        icone.classList.toggle("bi-eye-slash");
+    });
+
+    // Evita perda de foco ou seleção de texto ao clicar no ícone
+    icone.addEventListener("mousedown", evento => evento.preventDefault());
+}
 
 
 /**
@@ -1195,7 +1250,7 @@ async function preencherDropdown(parametros) {
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
         idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
-
+        idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
         // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         const entryCL = escritorios.find(e => e.sigla === parametros.comite);
@@ -1273,4 +1328,81 @@ function slugify(texto) {
         .replace(/^[-/]+|[-/]+$/g, "");      // remove hífens ou barras no início/fim
 }
 
+/**
+     * Valida uma senha com base em regras de segurança.
+     *
+     * @param {string} senha - Senha digitada pelo usuário.
+     * @returns {{
+     *   tamanhoMinimo: boolean,
+     *   letraMaiuscula: boolean,
+     *   letraMinuscula: boolean,
+     *   numero: boolean,
+     *   caractereEspecial: boolean,
+     *   senhaValida: boolean
+     * }}
+     */
+function validarSenha(senha) {
+    const naoEstaVazia = senha.length > 0;
 
+    const regras = {
+        tamanhoMinimo: naoEstaVazia && senha.length >= 8,
+        letraMaiuscula: /[A-Z]/.test(senha),
+        letraMinuscula: /[a-z]/.test(senha),
+        numero: /\d/.test(senha),
+        caractereEspecial: /[!@#$%^&*(),.?":{}|<>]/.test(senha)
+    };
+
+
+    return {
+        ...regras,
+        senhaValida: Object.values(regras).every(Boolean)
+    };
+}
+
+/**
+     * Inicializa a validação da senha em tempo real.
+     *
+     * @param {string} idSenha - ID do input de senha.
+     * @param {string} idFeedback - ID do elemento de feedback visual.
+     * @returns {void}
+     */
+function iniciarValidacaoSenha(idSenha, idFeedback) {
+    /** @type {HTMLInputElement | null} */
+    const campoSenha = document.getElementById(idSenha);
+
+    /** @type {HTMLElement | null} */
+    const feedback = document.getElementById(idFeedback);
+
+    if (!campoSenha || !feedback) return;
+
+    campoSenha.addEventListener("input", () => {
+        const resultado = validarSenha(campoSenha.value);
+
+        const mensagens = [];
+
+        if (!resultado.tamanhoMinimo) {
+            mensagens.push(`<li class="text-danger">Mínimo de 8 caracteres</li>`);
+        }
+
+        if (!resultado.letraMaiuscula) {
+            mensagens.push(`<li class="text-danger">Letra maiúscula</li>`);
+        }
+
+        if (!resultado.letraMinuscula) {
+            mensagens.push(`<li class="text-danger">Letra minúscula</li>`);
+        }
+
+        if (!resultado.numero) {
+            mensagens.push(`<li class="text-danger">Número</li>`);
+        }
+
+        if (!resultado.caractereEspecial) {
+            mensagens.push(`<li class="text-danger">Caractere especial</li>`);
+        }
+
+        feedback.innerHTML = mensagens.length
+            ? `<ul class="mb-0">${mensagens.join("")}</ul>`
+            : "";
+
+    });
+}
