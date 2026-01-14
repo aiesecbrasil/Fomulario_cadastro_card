@@ -405,10 +405,10 @@ function criarCampos(programa, comite, anuncio, rota) {
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSigla) {
                 newOption.selected = true;
-                idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
+                
             } else if (rota == slugify(produto.text)) {
                 newOption.selected = true;
-                idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
+               
             }
 
             dropdown.appendChild(newOption);
@@ -1021,7 +1021,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             nome,
                             sobrenome,
                             senha,
-                            idprograma:idprograma,
+                            idprograma:idProduto[0] == 1 ? 7 : idProduto[0] == 3 || 6 ? 8 : idProduto[0] == 4 ? 9 : 0,
                             nomeCL:aiesecTexto,
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
