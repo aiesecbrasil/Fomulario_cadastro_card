@@ -1020,7 +1020,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             nome,
                             sobrenome,
                             senha,
-                            idprograma:idprograma,
+                            idprograma:idprograma[0],
                             nomeCL:aiesecTexto,
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
@@ -1243,14 +1243,14 @@ function alternarVisibilidadeSenha(idSenha, idToggle) {
  * @param {ParametrosURL} parametros
  */
 async function preencherDropdown(parametros) {
+    const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.produto);
+    todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
     if (parametros.produto && parametros.comite && parametros.anuncio) {
         // Produto: com a nova estrutura [{sigla, nome}], localiza o índice pela sigla
-        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.produto);
+        
         indiceSigla = indiceProdutoPorSigla;
-
-        todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
+        
         idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
-        idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
         // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
         const entryCL = escritorios.find(e => e.sigla === parametros.comite);
@@ -1260,14 +1260,13 @@ async function preencherDropdown(parametros) {
         } else {
             idComite = [];
         }
-
+         idprograma = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.idprograma);
         // Como conheceu: mantém correspondência por slug
         todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
         listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
         indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
         idAnuncio = todasOpcoes_Como_Conheceu.filter((_, index) => index === indiceComoConheceuAiesec).map(i => i.id);
     }
-
     addEmail();
     addTelefone();
 
