@@ -1021,7 +1021,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                             sobrenome,
                             senha,
                             idprograma:idProduto[0] == 1 ? 7 : idProduto[0] == 3 || 6 ? 8 : idProduto[0] == 4 ? 9 : 0,
-                            nomeCL:aiesecTexto.replace(/\bunidade\s*s[aã]o\s*p[aã]ulo\b/gi, '').replace(/\s+/g, ' ').trim(),
+                            nomeCL:aiesecTexto.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '').replace(/\s+/g, ' ').trim(),
                             emails: emailsEnvio,
                             telefones: telefonesEnvio,
                             dataNascimento: inputISO.value,
