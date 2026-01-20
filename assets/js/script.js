@@ -963,27 +963,26 @@ document.getElementById('meuForm').addEventListener('submit', function (e) {
             tipo: e.tipo
         }));
 
-        let dados = `Nome: ${nome}<br>Sobrenome: ${sobrenome}<br>Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
-Data de Nascimento: ${inputVisivel.value}<br>`;
+        let dados = `<strong>Nome</strong>: ${nome}<br><strong>Sobrenome</strong>: ${sobrenome}<br><strong>Emails</strong>: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
+<strong>Telefones</strong>: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
+<strong>Data de Nascimento</strong>: ${inputVisivel.value}<br>`;
 
         // Adiciona só se o campo existir
         if (produtoSolicitado) {
-            dados += `Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
+            dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
         const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
         const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
         if (aiesecTexto) {
-            dados += `AIESEC: ${aiesecTexto}<br>`;
+            dados += `<strong>AIESEC</strong>: ${aiesecTexto}<br>`;
         }
         if (conheceuTexto) {
-            dados += `Como conheceu: ${conheceuTexto}<br>`;
+            dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
         }
 
         // Sempre presente
-        dados += `Aceitou Política: Sim`;
-
+        dados += `<strong>Aceitou Política</strong>: Sim`;
         // Mostra os dados no Modal
         const modal = document.getElementById('exampleModalLong');
         const myModal = new bootstrap.Modal(modal);
@@ -996,7 +995,7 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
         botaoConfirmar.style.display = 'inline-block';
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar";
-        botaoRemover.textContent = "Cancelar";
+        botaoRemover.textContent = "Editar dados";
 
         document.getElementById("DadosAqui").innerHTML = dados;
         myModal.show();
@@ -1045,8 +1044,8 @@ Data de Nascimento: ${inputVisivel.value}<br>`;
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
-                            `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou. e
-                            lembre-se da senha cadastrada: ${senha} e o e-mail referencia é o primeiro que você cadastrou: ${emails[0].email}`,
+                            `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou, 
+                             e lembre-se da senha cadastrada: ${senha} e o e-mail referencia é o primeiro que você cadastrou: ${emails[0].email}`,
                         type: "success",
                         showCancel: false,
                         confirmText: "Ok",
