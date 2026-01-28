@@ -15,6 +15,11 @@
         -->
         <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+            rel="stylesheet">
+
         <link
             href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
             rel="stylesheet"
@@ -72,7 +77,8 @@
                         <input type="password" class="form-control"
                             id="password"
                             placeholder>
-                        <label for="password" class="form-label">Senha *</label>
+                        <label for="password" class="form-label">Definir senha
+                            *</label>
                         <span class="input-group-text" id="togglePassword"
                             style="cursor: pointer;">
                             <i class="bi bi-eye"></i>
@@ -169,6 +175,30 @@
             <div class="stage" data-stage="2">
                 <!-- Quais idiomas você sabe? -->
                 <div id="idiomas" class="input-extra"></div>
+                <!-- curso -->
+                <div id="curso" class="input-extra"></div>
+                <!-- area de atuação -->
+                <div id="area-atuacao" class="input-extra"></div>
+                <!-- nivel de mercado -->
+                <div id="nivel-mercado" class="input-extra"></div>
+                <!-- semestre -->
+                <div class="input-extra">
+                    <label for="semestre">Selecione o semestre
+                        atual</label>
+                    <select id="semestre">
+                        <option value disabled selected>Selecione o semestre
+                            atual</option>
+                        <option value="1">1º Semestre</option>
+                        <option value="2">2º Semestre</option>
+                        <option value="3">3º Semestre</option>
+                        <option value="4">4º Semestre</option>
+                        <option value="5">5º Semestre</option>
+                        <option value="6">outros</option>
+                    </select>
+                </div>
+                <!-- curriculo -->
+                <input placeholder="curriculo" id="curriculo"
+                    class="input-extra" type="file" accept=".pdf">
             </div>
             <div class="stage-controls">
                 <div class="row g-2 stage-buttons">

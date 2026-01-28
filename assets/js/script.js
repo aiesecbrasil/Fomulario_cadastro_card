@@ -22,10 +22,10 @@ const containerEmail = document.getElementById('emails-container');
 // Estruturas de produto com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'gv', nome: 'Voluntário Globa' }
 const siglaProduto = [
-    { sigla: 'gv', nome: 'Voluntário Global' },
-    { sigla: 'gtast', nome: 'Talento Global Short Term' },
-    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term' },
-    { sigla: 'gte', nome: 'Professor Global' }
+    { sigla: 'gv', nome: 'Voluntário Global', idprograma: 7 },
+    { sigla: 'gtast', nome: 'Talento Global Short Term', idprograma: 8 },
+    { sigla: 'gtalt', nome: 'Talento Global Mid e Long Term', idprograma: 8 },
+    { sigla: 'gte', nome: 'Professor Global', idprograma: 9 }
 ];
 // Estruturas de escritórios (CLs) com sigla e nome por extenso para facilitar matching.
 //Formato dos itens: { sigla: 'AB', nome: 'ABC' } 
@@ -468,7 +468,6 @@ function criarCampos(programa, comite, anuncio, rota) {
         // Produto: obtém o índice com base na nova estrutura de siglaProduto [{sigla, nome}]
         const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === programa);
         indiceSigla = indiceProdutoPorSigla;
-
         todosProdutos.forEach((produto, index) => {
             const newOption = document.createElement("option");
             newOption.value = produto.id;
@@ -477,8 +476,10 @@ function criarCampos(programa, comite, anuncio, rota) {
             // Se o índice da sigla for igual ao índice do produto
             if (index === indiceSigla) {
                 newOption.selected = true;
+
             } else if (rota == slugify(produto.text)) {
                 newOption.selected = true;
+
             }
 
             dropdown.appendChild(newOption);
@@ -950,166 +951,12 @@ inputVisivel.addEventListener('input', () => {
 
 
 // -------------------- Validação geral no envio --------------------
-document.getElementById('meuForm').addEventListener('submit', function (e) {
+document.getElementById('btn-next').addEventListener('click', function (e) {
     e.preventDefault();
 
     // -------------------- Mostrar dados no alerta --------------------
     if (validarDadosObrigatorios()) {
-        // Coleta e normalização dos dados do formulário para exibição e envio
-        const nome = document.getElementById('nome').value;
-        const sobrenome = document.getElementById('sobrenome').value;
-        const senha = document.getElementById('password').value;
-        const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
-            const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
-            const textoTipoOriginal = select.value;
-            const textoTipoTraduzido = select.selectedOptions[0].text;
-            return {
-                email: el.value,
-                tipo: textoTipoOriginal,
-                tipoTraduzido: textoTipoTraduzido
-            };
-        });
-
-        const telefones = Array.from(document.querySelectorAll('input[name="telefone[]"]')).map((el, i) => {
-            const select = document.querySelectorAll('select[name="telefoneTipo[]"]')[i];
-            const textoTipoOriginal = select.value;
-            const textoTipoTraduzido = select.selectedOptions[0].text;
-
-            return {
-                numero: el.value,
-                tipo: textoTipoOriginal,
-                tipoTraduzido: textoTipoTraduzido
-            };
-        });
-
-        const telefonesEnvio = telefones.map(t => ({
-            numero: limparTelefoneFormatado(t.numero),
-            tipo: t.tipo
-        }));
-
-        const emailsEnvio = emails.map(e => ({
-            email: e.email,
-            tipo: e.tipo
-        }));
-
-        let dados = `Nome: ${nome}<br>Sobrenome: ${sobrenome}<br>Emails: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
-Telefones: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
-Data de Nascimento: ${inputVisivel.value}<br>`;
-
-        // Adiciona só se o campo existir
-        if (produtoSolicitado) {
-            dados += `Produto: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
-        }
-
-        const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
-        const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
-        if (aiesecTexto) {
-            dados += `AIESEC: ${aiesecTexto}<br>`;
-        }
-        if (conheceuTexto) {
-            dados += `Como conheceu: ${conheceuTexto}<br>`;
-        }
-
-        // Sempre presente
-        dados += `Aceitou Política: Sim`;
-
-        // Mostra os dados no Modal
-        const modal = document.getElementById('exampleModalLong');
-        const myModal = new bootstrap.Modal(modal);
-        const botaoConfirmar = document.getElementById("botaoConfirmar");
-        const botaoRemover = document.getElementById("botaoCancelar");
-        const tituloModal = document.getElementById("exampleModalLongTitle");
-
-        tituloModal.textContent = "Confirme seus dados";
-        // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
-        botaoConfirmar.style.display = 'inline-block';
-        botaoConfirmar.disabled = false;
-        botaoConfirmar.textContent = "Confirmar";
-        botaoRemover.textContent = "Cancelar";
-
-        document.getElementById("DadosAqui").innerHTML = dados;
-        myModal.show();
-
-        // Remove listener antigo e adiciona o novo
-        botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
-        const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
-
-        novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
-            e.preventDefault();
-            // Fecha o modal de confirmação
-            myModal.hide();
-            mostrarSpinner();
-            // Aguarda o modal terminar de fechar
-            modal.addEventListener('hidden.bs.modal', async function handler() {
-                modal.removeEventListener('hidden.bs.modal', handler);
-                const data = {
-                    nome,
-                    sobrenome,
-                    senha,
-                    emails: emailsEnvio,
-                    telefones: telefonesEnvio,
-                    dataNascimento: inputISO.value,
-                    idProduto: idProduto,
-                    idComite: idComite,
-                    idCategoria: idAnuncio,
-                    idAutorizacao: "1",
-                    idAnuncio: idFormaAnuncio,
-                    tag: slugify(parametros.campanha),
-                    idIdioma: idiomaSelecionados.map(idioma => idioma.id)
-                }
-                try {
-                    /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data),
-                    });
-
-                    if (!response.ok) {
-                        let backend = null;
-                        try { backend = await response.json(); } catch (_) { backend = null; }
-                        throw { status: response.status, backend };
-                    }*/
-
-                    esconderSpinner();
-                    console.log(data)
-                    showModal({
-                        title: "Dados enviados com sucesso!",
-                        message:
-                            "Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou.",
-                        type: "success",
-                        showCancel: false,
-                        confirmText: "Ok",
-                        onConfirm: () => {
-                            document.getElementById("meuForm").reset();
-                            location.reload();
-                        }
-                    });
-
-                } catch (err) {
-                    esconderSpinner();
-
-                    showModal({
-                        title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
-                        message:
-                            err?.status === 400
-                                ? ""
-                                : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
-                        type: "error",
-                        showConfirm: false,
-                        showCancel: true,
-                        cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
-                        backendError: err?.backend,
-                        onCancel:
-                            err?.status === 400
-                                ? undefined
-                                : () => {
-                                    document.getElementById("meuForm").reset();
-                                    location.reload();
-                                }
-                    });
-                }
-            })
-        });
+        enviarFormularioObrigatorio();
     }
 });
 
@@ -1273,6 +1120,165 @@ function validarDadosObrigatorios() {
     }
 }
 
+function enviarFormularioObrigatorio() {
+    // Coleta e normalização dos dados do formulário para exibição e envio
+    const nome = document.getElementById('nome').value;
+    const sobrenome = document.getElementById('sobrenome').value;
+    const senha = document.getElementById('password').value;
+    const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
+        const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
+        const textoTipoOriginal = select.value;
+        const textoTipoTraduzido = select.selectedOptions[0].text;
+        return {
+            email: el.value,
+            tipo: textoTipoOriginal,
+            tipoTraduzido: textoTipoTraduzido
+        };
+    });
+
+    const telefones = Array.from(document.querySelectorAll('input[name="telefone[]"]')).map((el, i) => {
+        const select = document.querySelectorAll('select[name="telefoneTipo[]"]')[i];
+        const textoTipoOriginal = select.value;
+        const textoTipoTraduzido = select.selectedOptions[0].text;
+
+        return {
+            numero: el.value,
+            tipo: textoTipoOriginal,
+            tipoTraduzido: textoTipoTraduzido
+        };
+    });
+
+    const telefonesEnvio = telefones.map(t => ({
+        numero: limparTelefoneFormatado(t.numero),
+        tipo: t.tipo
+    }));
+
+    const emailsEnvio = emails.map(e => ({
+        email: e.email,
+        tipo: e.tipo
+    }));
+
+    let dados = `<strong>Nome</strong>: ${nome}<br><strong>Sobrenome</strong>: ${sobrenome}<br><strong>Emails</strong>: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
+<strong>Telefones</strong>: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
+<strong>Data de Nascimento</strong>: ${inputVisivel.value}<br>`;
+
+    // Adiciona só se o campo existir
+    if (produtoSolicitado) {
+        dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
+    }
+
+    const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
+    const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
+    if (aiesecTexto) {
+        dados += `<strong>AIESEC</strong>: ${aiesecTexto}<br>`;
+    }
+    if (conheceuTexto) {
+        dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
+    }
+
+    // Sempre presente
+    dados += `<strong>Aceitou Política</strong>: Sim`;
+    // Mostra os dados no Modal
+    const modal = document.getElementById('exampleModalLong');
+    const myModal = new bootstrap.Modal(modal);
+    const botaoConfirmar = document.getElementById("botaoConfirmar");
+    const botaoRemover = document.getElementById("botaoCancelar");
+    const tituloModal = document.getElementById("exampleModalLongTitle");
+
+    tituloModal.textContent = "Confirme seus dados";
+    // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
+    botaoConfirmar.style.display = 'inline-block';
+    botaoConfirmar.disabled = false;
+    botaoConfirmar.textContent = "Confirmar";
+    botaoRemover.textContent = "Editar dados";
+
+    document.getElementById("DadosAqui").innerHTML = dados;
+    myModal.show();
+
+    // Remove listener antigo e adiciona o novo
+    botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
+    const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
+    novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+        e.preventDefault();
+        // Fecha o modal de confirmação
+        myModal.hide();
+        mostrarSpinner();
+        // Aguarda o modal terminar de fechar
+        modal.addEventListener('hidden.bs.modal', async function handler() {
+            modal.removeEventListener('hidden.bs.modal', handler);
+            const mapeamentoProgramas = { 1: 7, 3: 8, 6: 8, 4: 9 };
+            const idprograma = mapeamentoProgramas[idProduto[0]] || 0;
+            const data = {
+                nome,
+                sobrenome,
+                senha,
+                idprograma,
+                nomeCL: aiesecTexto.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '').replace(/\s+/g, ' ').trim(),
+                emails: emailsEnvio,
+                telefones: telefonesEnvio,
+                dataNascimento: inputISO.value,
+                idProduto: idProduto[0],
+                idComite: idComite[0],
+                idCategoria: idAnuncio[0],
+                idAutorizacao: "1",
+                idAnuncio: idFormaAnuncio[0] || 0,
+                tag: slugify(parametros.campanha)
+            };
+            try {
+                const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    let backend = null;
+                    try { backend = await response.json(); } catch (_) { backend = null; }
+                    throw { status: response.status, backend };
+                }
+
+                esconderSpinner();
+                console.log(data)
+                showModal({
+                    title: "Dados enviados com sucesso!",
+                    message:
+                        `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou, 
+                             e lembre-se da senha cadastrada: ${senha} e o e-mail referencia é o primeiro que você cadastrou: ${emails[0].email}`,
+                    type: "success",
+                    showCancel: false,
+                    confirmText: "Ok",
+                    onConfirm: () => {
+                        document.getElementById("meuForm").reset();
+                        location.reload();
+                    }
+                });
+            } catch (err) {
+                esconderSpinner();
+
+                showModal({
+                    title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
+                    message:
+                        err?.status === 400
+                            ? ""
+                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                    type: "error",
+                    showConfirm: false,
+                    showCancel: true,
+                    cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
+                    backendError: err?.backend,
+                    onCancel:
+                        err?.status === 400
+                            ? undefined
+                            : () => {
+                                document.getElementById("meuForm").reset();
+                                location.reload();
+                            }
+                });
+            }
+        })
+    });
+}
+
 // ============================================================================
 // -------------------- FUNÇÕES DE CONTROLE DO SPINNER ------------------------
 // ============================================================================
@@ -1427,6 +1433,7 @@ async function preencherDropdown(parametros) {
         indiceSigla = indiceProdutoPorSigla;
 
         todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
+        idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
         const entryProduto = siglaProduto.find(p => p.sigla === parametros.produto);
         if (entryProduto) {
             const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));

@@ -3,7 +3,7 @@
   - Define tipografia, largura máxima e caixa com sombra para melhor legibilidade.
 */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Lato', sans-serif;
     max-width: 650px;
     margin: 40px auto;
     background-color: #ffffff;
@@ -210,12 +210,13 @@ h2 {
 }
 
 #DadosAqui {
+    font-family: 'Lato', sans-serif;
     overflow-wrap: break-word;
     /* força quebra */
     word-wrap: break-word;
     /* compatibilidade */
-    white-space: pre-wrap;
-    /* permite quebra */
+    white-space: normal; /* Isso faz com que múltiplos espaços e quebras de linha virem apenas um espaço */
+   
 }
 
 /*
