@@ -335,10 +335,17 @@ function showModal(options) {
     const novoCancelar = document.getElementById('botaoCancelar');
 
     if (showConfirm && typeof onConfirm === 'function') {
-        novoConfirmar.addEventListener('click', onConfirm, { once: true });
+        novoConfirmar.addEventListener('click', ev => {
+            onConfirm(ev);
+            myModal.hide(); // ✅ fecha só aqui
+        }, { once: true });
     }
+
     if (showCancel && typeof onCancel === 'function') {
-        novoCancelar.addEventListener('click', onCancel, { once: true });
+        novoCancelar.addEventListener('click', ev => {
+            onCancel(ev);
+            myModal.hide(); // opcional
+        }, { once: true });
     }
 
     // Exibe o modal
@@ -415,7 +422,6 @@ function criarCampos(programa, comite, anuncio, rota) {
     const programas = document.getElementById("produtos");
     const aiesec = document.getElementById("aiesecs");
     const conheceAiesec = document.getElementById("conheceAiesec");
-    const idiomas = document.getElementById("idiomas");
 
     if (!programa) {
         programas.innerHTML = `
@@ -552,6 +558,14 @@ function criarCampos(programa, comite, anuncio, rota) {
 
         conheceAiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
+
+}
+
+function criarCamposOpicionais(idproduto) {
+    const idiomas = document.getElementById("idiomas");
+    const cursos = document.getElementById("cursos");
+    const atuacao = document.getElementById("areas-atuacao");
+    const mercado = document.getElementById("niveis-mercado");
     idiomas.innerHTML = `
         <label for="combo-input-idioma">Selecione ou digite os idiomas que você sabe falar</label>
         `;
@@ -578,8 +592,34 @@ function criarCampos(programa, comite, anuncio, rota) {
 
 
     idiomas.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
-
-
+    if (idproduto == 1) {
+        cursos.innerHTML = `<label for="curso">Curso</label>
+        <input type="text" id="curso" placeholder="Informe Seu curso"
+                                aria-required="true"
+                                aria-describedby="erro-curso" />
+                            <span class="error-msg" id="erro-curso" role="alert"
+                                aria-live="polite"></span>`
+    } else {
+        atuacao.innerHTML = `<label for="combo-input-atuacao">Sua Área de Atuação</label>
+        <input type="text" id="area-atuacao" placeholder="Informe Sua Área de Atuação"
+                                aria-required="true"
+                                aria-describedby="erro-area-atuacao" />
+                            <span class="error-msg" id="erro-area-atuacao" role="alert"
+                                aria-live="polite"></span>`
+        mercado.innerHTML = `<div class="input-extra">
+            <label for="nivel">Nível profissional</label>
+            <select id="nivel" name="nivel">
+                <option value disabled selected>Selecione o nível</option>
+                <option value="estagiario">Estagiário</option>
+                <option value="assistente">Assistente/Auxiliar</option>
+                <option value="junior">Júnior (JR)</option>
+                <option value="pleno">Pleno (PL)</option>
+                <option value="senior">Sênior (SR)</option>
+                <option value="especialista">Especialista/Master</option>
+                <option value="lideranca">Liderança (Coordenador, Gerente, Diretor)</option>
+            </select>
+        </div>`
+    }
 }
 
 function filtroIdiomas(option, selecionados) {
@@ -951,13 +991,13 @@ inputVisivel.addEventListener('input', () => {
 
 
 // -------------------- Validação geral no envio --------------------
-document.getElementById('btn-next').addEventListener('click', function (e) {
+document.getElementById('meuForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     // -------------------- Mostrar dados no alerta --------------------
-    if (validarDadosObrigatorios()) {
-        enviarFormularioObrigatorio();
-    }
+    /*if (validarDadosOpocionais()) {
+       
+    }*/
 });
 
 function validarDadosObrigatorios() {
@@ -1120,92 +1160,93 @@ function validarDadosObrigatorios() {
     }
 }
 
-function enviarFormularioObrigatorio() {
-    // Coleta e normalização dos dados do formulário para exibição e envio
-    const nome = document.getElementById('nome').value;
-    const sobrenome = document.getElementById('sobrenome').value;
-    const senha = document.getElementById('password').value;
-    const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
-        const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
-        const textoTipoOriginal = select.value;
-        const textoTipoTraduzido = select.selectedOptions[0].text;
-        return {
-            email: el.value,
-            tipo: textoTipoOriginal,
-            tipoTraduzido: textoTipoTraduzido
-        };
-    });
+async function enviarFormularioObrigatorio() {
+    return new Promise(resolve => {
+        // Coleta e normalização dos dados do formulário para exibição e envio
+        const nome = document.getElementById('nome').value;
+        const sobrenome = document.getElementById('sobrenome').value;
+        const senha = document.getElementById('password').value;
+        const emails = Array.from(document.querySelectorAll('input[name="email[]"]')).map((el, i) => {
+            const select = document.querySelectorAll('select[name="emailTipo[]"]')[i];
+            const textoTipoOriginal = select.value;
+            const textoTipoTraduzido = select.selectedOptions[0].text;
+            return {
+                email: el.value,
+                tipo: textoTipoOriginal,
+                tipoTraduzido: textoTipoTraduzido
+            };
+        });
 
-    const telefones = Array.from(document.querySelectorAll('input[name="telefone[]"]')).map((el, i) => {
-        const select = document.querySelectorAll('select[name="telefoneTipo[]"]')[i];
-        const textoTipoOriginal = select.value;
-        const textoTipoTraduzido = select.selectedOptions[0].text;
+        const telefones = Array.from(document.querySelectorAll('input[name="telefone[]"]')).map((el, i) => {
+            const select = document.querySelectorAll('select[name="telefoneTipo[]"]')[i];
+            const textoTipoOriginal = select.value;
+            const textoTipoTraduzido = select.selectedOptions[0].text;
 
-        return {
-            numero: el.value,
-            tipo: textoTipoOriginal,
-            tipoTraduzido: textoTipoTraduzido
-        };
-    });
+            return {
+                numero: el.value,
+                tipo: textoTipoOriginal,
+                tipoTraduzido: textoTipoTraduzido
+            };
+        });
 
-    const telefonesEnvio = telefones.map(t => ({
-        numero: limparTelefoneFormatado(t.numero),
-        tipo: t.tipo
-    }));
+        const telefonesEnvio = telefones.map(t => ({
+            numero: limparTelefoneFormatado(t.numero),
+            tipo: t.tipo
+        }));
 
-    const emailsEnvio = emails.map(e => ({
-        email: e.email,
-        tipo: e.tipo
-    }));
+        const emailsEnvio = emails.map(e => ({
+            email: e.email,
+            tipo: e.tipo
+        }));
 
-    let dados = `<strong>Nome</strong>: ${nome}<br><strong>Sobrenome</strong>: ${sobrenome}<br><strong>Emails</strong>: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
+        let dados = `<strong>Nome</strong>: ${nome}<br><strong>Sobrenome</strong>: ${sobrenome}<br><strong>Emails</strong>: ${emails.map(email => `${email.email} (${email.tipoTraduzido})`).join('<br>\t')}<br>
 <strong>Telefones</strong>: ${telefones.map(telefone => `${telefone.numero} (${telefone.tipoTraduzido})`).join('<br>\t')}<br>
 <strong>Data de Nascimento</strong>: ${inputVisivel.value}<br>`;
 
-    // Adiciona só se o campo existir
-    if (produtoSolicitado) {
-        dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
-    }
+        // Adiciona só se o campo existir
+        if (produtoSolicitado) {
+            dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
+        }
 
-    const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
-    const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
-    if (aiesecTexto) {
-        dados += `<strong>AIESEC</strong>: ${aiesecTexto}<br>`;
-    }
-    if (conheceuTexto) {
-        dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
-    }
+        const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
+        const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
+        if (aiesecTexto) {
+            dados += `<strong>AIESEC</strong>: ${aiesecTexto}<br>`;
+        }
+        if (conheceuTexto) {
+            dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
+        }
 
-    // Sempre presente
-    dados += `<strong>Aceitou Política</strong>: Sim`;
-    // Mostra os dados no Modal
-    const modal = document.getElementById('exampleModalLong');
-    const myModal = new bootstrap.Modal(modal);
-    const botaoConfirmar = document.getElementById("botaoConfirmar");
-    const botaoRemover = document.getElementById("botaoCancelar");
-    const tituloModal = document.getElementById("exampleModalLongTitle");
+        // Sempre presente
+        dados += `<strong>Aceitou Política</strong>: Sim`;
+        // Mostra os dados no Modal
+        const modal = document.getElementById('exampleModalLong');
+        const myModal = new bootstrap.Modal(modal);
+        const botaoConfirmar = document.getElementById("botaoConfirmar");
+        const botaoRemover = document.getElementById("botaoCancelar");
+        const tituloModal = document.getElementById("exampleModalLongTitle");
 
-    tituloModal.textContent = "Confirme seus dados";
-    // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
-    botaoConfirmar.style.display = 'inline-block';
-    botaoConfirmar.disabled = false;
-    botaoConfirmar.textContent = "Confirmar";
-    botaoRemover.textContent = "Editar dados";
+        tituloModal.textContent = "Confirme seus dados";
+        // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
+        botaoConfirmar.style.display = 'inline-block';
+        botaoConfirmar.disabled = false;
+        botaoConfirmar.textContent = "Confirmar";
+        botaoRemover.textContent = "Editar dados";
 
-    document.getElementById("DadosAqui").innerHTML = dados;
-    myModal.show();
+        document.getElementById("DadosAqui").innerHTML = dados;
+        myModal.show();
 
-    // Remove listener antigo e adiciona o novo
-    botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
-    const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
-    novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
-        e.preventDefault();
-        // Fecha o modal de confirmação
-        myModal.hide();
-        mostrarSpinner();
-        // Aguarda o modal terminar de fechar
-        modal.addEventListener('hidden.bs.modal', async function handler() {
-            modal.removeEventListener('hidden.bs.modal', handler);
+        // Remove listener antigo e adiciona o novo
+        botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
+        const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
+        novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+            e.preventDefault();
+            // Fecha o modal de confirmação
+            myModal.hide();
+            mostrarSpinner();
+            // Aguarda o modal terminar de fechar
+            await esperarModalFechar(modal);
+
             const mapeamentoProgramas = { 1: 7, 3: 8, 6: 8, 4: 9 };
             const idprograma = mapeamentoProgramas[idProduto[0]] || 0;
             const data = {
@@ -1230,7 +1271,7 @@ function enviarFormularioObrigatorio() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-
+    
                 if (!response.ok) {
                     let backend = null;
                     try { backend = await response.json(); } catch (_) { backend = null; }
@@ -1248,8 +1289,9 @@ function enviarFormularioObrigatorio() {
                     showCancel: false,
                     confirmText: "Ok",
                     onConfirm: () => {
-                        document.getElementById("meuForm").reset();
-                        location.reload();
+                        /*document.getElementById("meuForm").reset(); 
+                        location.reload();*/
+                        resolve(true)
                     }
                 });
             } catch (err) {
@@ -1272,11 +1314,12 @@ function enviarFormularioObrigatorio() {
                             : () => {
                                 document.getElementById("meuForm").reset();
                                 location.reload();
+                                resolve(true)
                             }
                 });
             }
         })
-    });
+    })
 }
 
 // ============================================================================
@@ -1651,17 +1694,30 @@ function toggleStageInputs(activeIndex) {
 }
 
 
-btnNext.addEventListener("click", () => {
+btnNext.addEventListener("click", async () => {
     if (validarDadosObrigatorios()) {
+        const ok = await enviarFormularioObrigatorio();
+        if (!ok) return;
         // Se não for o último stage, apenas avança
         if (currentStage < TOTAL_STAGES - 1) {
             showStage(currentStage + 1);
+            criarCamposOpicionais(idProduto[0])
         } else {
             // Último stage → dispara submit real
             document.getElementById("meuForm").requestSubmit();
         }
     }
 });
+
+function esperarModalFechar(modal) {
+    return new Promise(resolve => {
+        modal.addEventListener('hidden.bs.modal', function handler() {
+            modal.removeEventListener('hidden.bs.modal', handler);
+            resolve();
+        });
+    });
+}
+
 
 btnPrev.addEventListener("click", () => {
     if (currentStage > 0) {
