@@ -60,12 +60,18 @@ const escritorios = [
 const stages = document.querySelectorAll(".stage");
 const btnNext = document.getElementById("btn-next");
 const btnPrev = document.getElementById("btn-prev");
+const idiomas = document.getElementById("idiomas");
+const cursos = document.getElementById("cursos");
+const atuacao = document.getElementById("areas-atuacao");
+const mercado = document.getElementById("niveis-mercado");
 const TOTAL_STAGES = stages.length;
 const idiomaSelecionados = [];
 const idComite = [];
 const idProduto = [];
 const idAnuncio = [];
 const idFormaAnuncio = [];
+let passou = 0;
+let todasOpcoes_idioma;
 let campos;
 let listaAnuncio;
 let indiceComoConheceuAiesec;
@@ -562,10 +568,6 @@ function criarCampos(programa, comite, anuncio, rota) {
 }
 
 function criarCamposOpicionais(idproduto) {
-    const idiomas = document.getElementById("idiomas");
-    const cursos = document.getElementById("cursos");
-    const atuacao = document.getElementById("areas-atuacao");
-    const mercado = document.getElementById("niveis-mercado");
     idiomas.innerHTML = `
         <label for="combo-input-idioma">Selecione ou digite os idiomas que você sabe falar</label>
         `;
@@ -618,6 +620,7 @@ function criarCamposOpicionais(idproduto) {
                 <option value="especialista">Especialista/Master</option>
                 <option value="lideranca">Liderança (Coordenador, Gerente, Diretor)</option>
             </select>
+            <span class="error-msg" id="erro-nivel" role="alert" aria-live="polite"></span>
         </div>`
     }
 }
@@ -989,17 +992,6 @@ inputVisivel.addEventListener('input', () => {
     }
 });
 
-
-// -------------------- Validação geral no envio --------------------
-document.getElementById('meuForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // -------------------- Mostrar dados no alerta --------------------
-    /*if (validarDadosOpocionais()) {
-       
-    }*/
-});
-
 function validarDadosObrigatorios() {
     let valido = true;
     const camposErro = [];
@@ -1070,7 +1062,6 @@ function validarDadosObrigatorios() {
             document.getElementById('erro-email').textContent = "";
         }
     });
-
 
     // Telefone
     document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
@@ -1157,6 +1148,80 @@ function validarDadosObrigatorios() {
             showCancel: true,
             cancelText: "Corrigir"
         });
+    }
+}
+
+function validarDadosOpcionais() {
+    let valido = true;
+    const camposErro = [];
+    const nivelMercadoPermitidos = ["estagiario", "assistente", "junior", "pleno", "senior", "especialista", "lideranca"];
+
+    // Função auxiliar para validar na hora e evitar erro de 'null'
+    function validarImediato(id, erroId) {
+        const input = document.getElementById(id);
+        const erro = document.getElementById(erroId);
+
+        if (!input || !erro) return; // Se o campo não existe na tela, ignora
+
+        const valor = input.value.trim();
+        if (valor !== "") {
+            const regex = /^[A-Za-zÀ-ÿ\s]+$/;
+            if (!regex.test(valor)) {
+                valido = false;
+                erro.textContent = "Use apenas letras e espaços.";
+                const label = input.previousElementSibling ? input.previousElementSibling.textContent : id;
+                camposErro.push(`${label} inválido`);
+            } else {
+                erro.textContent = "";
+            }
+        }
+    }
+
+    // 1. Validar Idiomas
+    const erroIdioma = document.getElementById('erro-idioma');
+    if (erroIdioma) {
+        const idIdiomaValidos = todasOpcoes_idioma.map(o => o.id);
+        if (idiomaSelecionados.length > 0 && !idiomaSelecionados.every(idioma => idIdiomaValidos.includes(idioma.id))) {
+            valido = false;
+            erroIdioma.textContent = "Informe uma opção de idioma válido!";
+            camposErro.push("Idioma inválido");
+        } else {
+            erroIdioma.textContent = "";
+        }
+    }
+
+    // 2. Validar Curso
+    validarImediato('curso', 'erro-curso');
+
+    // 3. Validar Área de Atuação
+    validarImediato('area-atuacao', 'erro-area-atuacao');
+
+    // 4. Validar Nível (Select)
+    const nivel = document.getElementById("nivel");
+    const erroNivel = document.getElementById('erro-nivel');
+    if (nivel && erroNivel) {
+        const valorNivel = nivel.value.trim();
+        if (valorNivel !== "" && !nivelMercadoPermitidos.includes(valorNivel)) {
+            valido = false;
+            erroNivel.textContent = "Nível de mercado inválido.";
+            camposErro.push("Nível de mercado inválido.");
+        } else {
+            erroNivel.textContent = "";
+        }
+    }
+
+    if (valido) {
+        return true;
+    } else {
+        showModal({
+            title: "Dados incorretos.",
+            message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')}`,
+            type: "error",
+            showConfirm: false,
+            showCancel: true,
+            cancelText: "Corrigir"
+        });
+        return false; // Retorna false para o btnNext não prosseguir
     }
 }
 
@@ -1271,7 +1336,7 @@ async function enviarFormularioObrigatorio() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-    
+
                 if (!response.ok) {
                     let backend = null;
                     try { backend = await response.json(); } catch (_) { backend = null; }
@@ -1321,7 +1386,188 @@ async function enviarFormularioObrigatorio() {
         })
     })
 }
+async function enviarFormularioOpicionais() {
+    const semestre = document.getElementById("semestre");
+    const nivel = document.getElementById('nivel');
+    const areaAtuacao = document.getElementById("area-atuacao");
+    const curso = document.getElementById("curso");
+    return new Promise(resolve => {
+        // Coleta e normalização dos dados do formulário para exibição e envio
+        let dados = "";
 
+        if (idiomaSelecionados.length > 0) {
+            dados += `<strong>Idiomas</strong>: ${idiomaSelecionados.map(id => {
+                todasOpcoes_idioma.filter(idioma => idioma.id == id).map(idioma => idioma.text).join(', ')
+            })}<br>`;
+        }
+
+        if (curso.value) {
+            dados += `<strong>Curso</strong>: ${curso.value}<br>`;
+        }
+
+        if (areaAtuacao && areaAtuacao.value) {
+            dados += `<strong>Área de atuação</strong>: ${areaAtuacao.value}<br>`;
+        }
+
+        // Adiciona só se o campo existir
+        if (nivel && nivel.value) {
+            dados += `<strong>Profissição</strong>: ${nivel.value}<br>`;
+        }
+
+        if (semestre.value) {
+            dados += `<strong>Semestre</strong>: ${semestre.value}<br>`
+        }
+        if (dados !== "") {
+            // Mostra os dados no Modal
+            const modal = document.getElementById('exampleModalLong');
+            const myModal = new bootstrap.Modal(modal);
+            const botaoConfirmar = document.getElementById("botaoConfirmar");
+            const botaoRemover = document.getElementById("botaoCancelar");
+            const tituloModal = document.getElementById("exampleModalLongTitle");
+
+            tituloModal.textContent = "Confirme seus dados";
+            // 🔹 Restaura o estado padrão dos botões caso tenha havido erro antes
+            botaoConfirmar.style.display = 'inline-block';
+            botaoConfirmar.disabled = false;
+            botaoConfirmar.textContent = "Confirmar";
+            botaoRemover.textContent = "Editar dados";
+
+            document.getElementById("DadosAqui").innerHTML = dados;
+            myModal.show();
+            // Remove listener antigo e adiciona o novo
+            botaoConfirmar.replaceWith(botaoConfirmar.cloneNode(true));
+            const novoBotaoConfirmar = document.getElementById("botaoConfirmar");
+            novoBotaoConfirmar.addEventListener("click", async function handleSubmit(e) {
+                e.preventDefault();
+                // Fecha o modal de confirmação
+                myModal.hide();
+                mostrarSpinner();
+                // Aguarda o modal terminar de fechar
+                await esperarModalFechar(modal);
+
+                const data = {
+                    "id": 123456,
+                    "idiomas": idiomaSelecionados,
+                    "area_atuacao": atuacao ? atuacao.value : null,
+                    "nivel_mercado": mercado ? mercado.value : null,
+                    "curso": cursos ? cursos.value : null
+                }
+                try {
+                    /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data),
+                    });
+    
+                    if (!response.ok) {
+                        let backend = null;
+                        try { backend = await response.json(); } catch (_) { backend = null; }
+                        throw { status: response.status, backend };
+                    }*/
+
+                    esconderSpinner();
+                    console.log(data)
+                    showModal({
+                        title: "Dados enviados com sucesso!",
+                        message:
+                            `Obrigado por ter respondido a segunda parte do Formulario`,
+                        type: "success",
+                        showCancel: false,
+                        confirmText: "Ok",
+                        onConfirm: () => {
+                            /*document.getElementById("meuForm").reset(); 
+                            location.reload();*/
+                            resolve(true)
+                        }
+                    });
+                } catch (err) {
+                    esconderSpinner();
+
+                    showModal({
+                        title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
+                        message:
+                            err?.status === 400
+                                ? ""
+                                : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                        type: "error",
+                        showConfirm: false,
+                        showCancel: true,
+                        cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
+                        backendError: err?.backend,
+                        onCancel:
+                            err?.status === 400
+                                ? undefined
+                                : () => {
+                                    document.getElementById("meuForm").reset();
+                                    location.reload();
+                                    resolve(true)
+                                }
+                    });
+                }
+            })
+        } else {
+            mostrarSpinner();
+
+            const data = {
+                "id": 123456,
+                "idiomas": idiomaSelecionados,
+                "area_atuacao": atuacao ? atuacao.value : null,
+                "nivel_mercado": mercado ? mercado.value : null,
+                "curso": cursos ? cursos.value : null
+            }
+            try {
+                /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+ 
+                if (!response.ok) {
+                    let backend = null;
+                    try { backend = await response.json(); } catch (_) { backend = null; }
+                    throw { status: response.status, backend };
+                }*/
+
+                esconderSpinner();
+                console.log(data)
+                showModal({
+                    title: "Dados enviados com sucesso!",
+                    message:
+                        `Obrigado por ter respondido a segunda parte do Formulario`,
+                    type: "success",
+                    showCancel: false,
+                    confirmText: "Ok",
+                    onConfirm: () => {
+                        document.getElementById("meuForm").reset();
+                        location.reload();
+                    }
+                });
+            } catch (err) {
+                esconderSpinner();
+
+                showModal({
+                    title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
+                    message:
+                        err?.status === 400
+                            ? ""
+                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                    type: "error",
+                    showConfirm: false,
+                    showCancel: true,
+                    cancelText: err?.status === 400 ? "Corrigir" : "Recarregar",
+                    backendError: err?.backend,
+                    onCancel:
+                        err?.status === 400
+                            ? undefined
+                            : () => {
+                                document.getElementById("meuForm").reset();
+                                location.reload();
+                            }
+                });
+            }
+        }
+    })
+}
 // ============================================================================
 // -------------------- FUNÇÕES DE CONTROLE DO SPINNER ------------------------
 // ============================================================================
@@ -1695,17 +1941,46 @@ function toggleStageInputs(activeIndex) {
 
 
 btnNext.addEventListener("click", async () => {
-    if (validarDadosObrigatorios()) {
+    if (validarDadosObrigatorios() && passou == 0) {
         const ok = await enviarFormularioObrigatorio();
         if (!ok) return;
-        // Se não for o último stage, apenas avança
+
         if (currentStage < TOTAL_STAGES - 1) {
             showStage(currentStage + 1);
-            criarCamposOpicionais(idProduto[0])
-        } else {
-            // Último stage → dispara submit real
-            document.getElementById("meuForm").requestSubmit();
+            criarCamposOpicionais(idProduto[0]);
+            passou += 1
         }
+    } else if (validarDadosOpcionais() && passou == 1) {
+        const ok = await enviarFormularioOpicionais();
+        if (!ok) return;
+
+        // 1. Volta para o primeiro estágio
+        showStage(0);
+
+        // 2. Reseta o formulário HTML (limpa inputs de texto, e-mail, etc.)
+        const form = document.getElementById("meuForm");
+        if (form) form.reset();
+
+        // 3. Limpa campos específicos e variáveis de estado
+        // Limpa o container de tags de idiomas
+        idiomaSelecionados.length = 0;
+        const tagsIdiomas = document.getElementById("tags-idiomas");
+        if (tagsIdiomas) tagsIdiomas.innerHTML = '';
+
+        // Limpa campos de data (ISO e visível)
+        const inputVisivel = document.getElementById('nascimento');
+        const inputISO = document.getElementById('nascimento-iso');
+        if (inputVisivel) inputVisivel.value = '';
+        if (inputISO) inputISO.value = '';
+
+        // Limpa campos criados dinamicamente no stage opcional
+        idiomas.innerHTML = '';
+        cursos.innerHTML = '';
+        atuacao.innerHTML = '';
+        mercado.innerHTML = '';
+
+        // 4. Reinicializa os campos obrigatórios (Produto, AIESEC, etc.)
+        criarCampos(parametros.produto, parametros.comite, parametros.anuncio, parametros.rota);
     }
 });
 
