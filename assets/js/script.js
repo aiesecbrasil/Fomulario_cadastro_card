@@ -2021,9 +2021,9 @@ function esperarModalFechar(modal) {
 
 
 btnPrev.addEventListener("click", () => {
-    if (currentStage > 0) {
+    /*if (currentStage > 0) {
         showStage(currentStage - 1);
-    }
+    }*/
 });
 
 // Inicializa corretamente
