@@ -70,6 +70,7 @@ const idComite = [];
 const idProduto = [];
 const idAnuncio = [];
 const idFormaAnuncio = [];
+let itemID = 0;
 let passou = 0;
 let todasOpcoes_idioma;
 let campos;
@@ -612,13 +613,13 @@ function criarCamposOpicionais(idproduto) {
             <label for="nivel">Nível profissional</label>
             <select id="nivel" name="nivel">
                 <option value disabled selected>Selecione o nível</option>
-                <option value="estagiario">Estagiário</option>
-                <option value="assistente">Assistente/Auxiliar</option>
-                <option value="junior">Júnior (JR)</option>
-                <option value="pleno">Pleno (PL)</option>
-                <option value="senior">Sênior (SR)</option>
-                <option value="especialista">Especialista/Master</option>
-                <option value="lideranca">Liderança (Coordenador, Gerente, Diretor)</option>
+                <option value="1">Estagiário</option>
+                <option value="2">Assistente/Auxiliar</option>
+                <option value="3">Júnior (JR)</option>
+                <option value="4">Pleno (PL)</option>
+                <option value="5">Sênior (SR)</option>
+                <option value="6">Especialista/Master</option>
+                <option value="7">Liderança (Coordenador, Gerente, Diretor)</option>
             </select>
             <span class="error-msg" id="erro-nivel" role="alert" aria-live="polite"></span>
         </div>`
@@ -1154,7 +1155,7 @@ function validarDadosObrigatorios() {
 function validarDadosOpcionais() {
     let valido = true;
     const camposErro = [];
-    const nivelMercadoPermitidos = ["estagiario", "assistente", "junior", "pleno", "senior", "especialista", "lideranca"];
+    const nivelMercadoPermitidos = ["1", "2", "3", "4", "5", "6", "7"];
 
     // Função auxiliar para validar na hora e evitar erro de 'null'
     function validarImediato(id, erroId) {
@@ -1342,9 +1343,10 @@ async function enviarFormularioObrigatorio() {
                     try { backend = await response.json(); } catch (_) { backend = null; }
                     throw { status: response.status, backend };
                 }
+                const result = await response.json(); // 👈 AQUI
 
+                itemID = result.data.item_id;              // 👈 AQUI
                 esconderSpinner();
-                console.log(data)
                 showModal({
                     title: "Dados enviados com sucesso!",
                     message:
@@ -1391,17 +1393,22 @@ async function enviarFormularioOpicionais() {
     const nivel = document.getElementById('nivel');
     const areaAtuacao = document.getElementById("area-atuacao");
     const curso = document.getElementById("curso");
+    const Mercado = ["Estagiário",
+        "Assistente/Auxiliar",
+        "Júnior (JR)",
+        "Pleno (PL)",
+        "Sênior (SR)",
+        "Especialista/Master",
+        "Liderança (Coordenador, Gerente, Diretor)"]
     return new Promise(resolve => {
         // Coleta e normalização dos dados do formulário para exibição e envio
         let dados = "";
 
         if (idiomaSelecionados.length > 0) {
-            dados += `<strong>Idiomas</strong>: ${idiomaSelecionados.map(id => {
-                todasOpcoes_idioma.filter(idioma => idioma.id == id).map(idioma => idioma.text).join(', ')
-            })}<br>`;
+            dados += `<strong>Idiomas</strong>: ${idiomaSelecionados.map(idioma => idioma.text).join(", ")}<br>`;
         }
 
-        if (curso.value) {
+        if (curso && curso.value) {
             dados += `<strong>Curso</strong>: ${curso.value}<br>`;
         }
 
@@ -1411,11 +1418,11 @@ async function enviarFormularioOpicionais() {
 
         // Adiciona só se o campo existir
         if (nivel && nivel.value) {
-            dados += `<strong>Profissição</strong>: ${nivel.value}<br>`;
+            dados += `<strong>Profissição</strong>: ${Mercado[parseInt(nivel.value)-1]}<br>`;
         }
 
         if (semestre.value) {
-            dados += `<strong>Semestre</strong>: ${semestre.value}<br>`
+            dados += `<strong>Semestre</strong>: ${semestre.value < 9 ? semestre.value : "Outro"}<br>`
         }
         if (dados !== "") {
             // Mostra os dados no Modal
@@ -1444,29 +1451,56 @@ async function enviarFormularioOpicionais() {
                 mostrarSpinner();
                 // Aguarda o modal terminar de fechar
                 await esperarModalFechar(modal);
-
                 const data = {
-                    "id": 123456,
-                    "idiomas": idiomaSelecionados,
-                    "area_atuacao": atuacao ? atuacao.value : null,
-                    "nivel_mercado": mercado ? mercado.value : null,
-                    "curso": cursos ? cursos.value : null
+                    "id": itemID,
+                    "idiomas": idiomaSelecionados?.map(id => id.id) ?? null,
+                    "area_atuacao": areaAtuacao?.value ?? null,
+                    "nivel_mercado": nivel?.value ?? null,
+                    "curso": curso?.value ?? null,
+                    "semestre": semestre?.value ?? null,
                 }
+                // 1. Defina esta função auxiliar no seu script.js
+                const lerArquivoComoBase64 = (file) => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        // O reader deve começar a ler ANTES de definir o onload em alguns casos, 
+                        // mas o padrão correto é configurar os eventos e depois disparar a leitura.
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = (error) => reject(error);
+                        reader.readAsDataURL(file);
+                    });
+                };
+
+                // 2. Dentro da sua função de envio principal (ex: btnNext ou btnSubmit)
+
+                const curriculoInput = document.getElementById("curriculo"); // ajuste o ID se necessário
+                const file = curriculoInput?.files[0];
+
+                if (file) {
+                    try {
+                        // ✅ O await garante que o código pare aqui até o arquivo ser convertido
+                        const base64 = await lerArquivoComoBase64(file);
+                        data.file = base64;
+                        data.fileName = file.name;
+                    } catch (e) {
+                        console.error("Erro ao ler o arquivo:", e);
+                    }
+                }
+                console.log(data)
                 try {
-                    /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
+                    const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(data),
                     });
-    
+
                     if (!response.ok) {
                         let backend = null;
                         try { backend = await response.json(); } catch (_) { backend = null; }
                         throw { status: response.status, backend };
-                    }*/
+                    }
 
                     esconderSpinner();
-                    console.log(data)
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
@@ -1507,21 +1541,13 @@ async function enviarFormularioOpicionais() {
             })
         } else {
             mostrarSpinner();
-
-            const data = {
-                "id": 123456,
-                "idiomas": idiomaSelecionados,
-                "area_atuacao": atuacao ? atuacao.value : null,
-                "nivel_mercado": mercado ? mercado.value : null,
-                "curso": cursos ? cursos.value : null
-            }
             try {
                 /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
- 
+         
                 if (!response.ok) {
                     let backend = null;
                     try { backend = await response.json(); } catch (_) { backend = null; }
@@ -1529,7 +1555,6 @@ async function enviarFormularioOpicionais() {
                 }*/
 
                 esconderSpinner();
-                console.log(data)
                 showModal({
                     title: "Dados enviados com sucesso!",
                     message:
@@ -1941,19 +1966,21 @@ function toggleStageInputs(activeIndex) {
 
 
 btnNext.addEventListener("click", async () => {
-    if (validarDadosObrigatorios() && passou == 0) {
-        const ok = await enviarFormularioObrigatorio();
-        if (!ok) return;
+    if (validarDadosObrigatorios() && currentStage === 0) {
+        if (passou == 0) {
+            const ok = await enviarFormularioObrigatorio();
+            if (!ok) return;
+        }
 
         if (currentStage < TOTAL_STAGES - 1) {
             showStage(currentStage + 1);
             criarCamposOpicionais(idProduto[0]);
             passou += 1
         }
-    } else if (validarDadosOpcionais() && passou == 1) {
+    } else if (validarDadosOpcionais() && passou == 1 && currentStage === 1) {
         const ok = await enviarFormularioOpicionais();
         if (!ok) return;
-
+        passou = 0
         // 1. Volta para o primeiro estágio
         showStage(0);
 
