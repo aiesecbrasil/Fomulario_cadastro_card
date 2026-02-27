@@ -1486,7 +1486,6 @@ async function enviarFormularioOpicionais() {
                         console.error("Erro ao ler o arquivo:", e);
                     }
                 }
-                console.log(data)
                 try {
                     const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                         method: "POST",
