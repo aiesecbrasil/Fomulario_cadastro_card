@@ -215,7 +215,7 @@ h2 {
     /* força quebra */
     word-wrap: break-word;
     /* compatibilidade */
-    white-space: normal; /* Isso faz com que múltiplos espaços e quebras de linha virem apenas um espaço */
+    white-space: pre-line; /* Isso faz com que múltiplos espaços e quebras de linha virem apenas um espaço */
    
 }
 

@@ -345,6 +345,7 @@ function showModal(options) {
         novoConfirmar.addEventListener('click', ev => {
             onConfirm(ev);
             myModal.hide(); // ✅ fecha só aqui
+            novoConfirmar.onclick = null; // ✅ remove listener para evitar múltiplos disparos
         }, { once: true });
     }
 
@@ -603,12 +604,21 @@ function criarCamposOpicionais(idproduto) {
                             <span class="error-msg" id="erro-curso" role="alert"
                                 aria-live="polite"></span>`
     } else {
-        atuacao.innerHTML = `<label for="combo-input-atuacao">Sua Área de Atuação</label>
-        <input type="text" id="area-atuacao" placeholder="Informe Sua Área de Atuação"
-                                aria-required="true"
-                                aria-describedby="erro-area-atuacao" />
-                            <span class="error-msg" id="erro-area-atuacao" role="alert"
-                                aria-live="polite"></span>`
+        atuacao.innerHTML = `
+    <label for="area-atuacao">Sua Área de Atuação</label>
+    <select id="area-atuacao" name="area-atuacao" aria-required="true" aria-describedby="erro-area-atuacao">
+        <option value="" disabled selected>Selecione sua área</option>
+        <option value="1">Administração</option>
+        <option value="2">Direito</option>
+        <option value="3">Tecnologia</option>
+        <option value="4">Engenharia</option>
+        <option value="5">Saúde</option>
+        <option value="6">Comunicação</option>
+        <option value="7">Ciências Humanas</option>
+        <option value="8">Ciências Naturais</option>
+    </select>
+    <span class="error-msg" id="erro-area-atuacao" role="alert" aria-live="polite"></span>
+`;
         mercado.innerHTML = `<div class="input-extra">
             <label for="nivel">Nível profissional</label>
             <select id="nivel" name="nivel">
@@ -1156,6 +1166,7 @@ function validarDadosOpcionais() {
     let valido = true;
     const camposErro = [];
     const nivelMercadoPermitidos = ["1", "2", "3", "4", "5", "6", "7"];
+    const areaAtuacaoPermitidos = ["1", "2", "3", "4", "5", "6", "7","8"];
 
     // Função auxiliar para validar na hora e evitar erro de 'null'
     function validarImediato(id, erroId) {
@@ -1194,10 +1205,7 @@ function validarDadosOpcionais() {
     // 2. Validar Curso
     validarImediato('curso', 'erro-curso');
 
-    // 3. Validar Área de Atuação
-    validarImediato('area-atuacao', 'erro-area-atuacao');
-
-    // 4. Validar Nível (Select)
+    // 3. Validar Nível (Select)
     const nivel = document.getElementById("nivel");
     const erroNivel = document.getElementById('erro-nivel');
     if (nivel && erroNivel) {
@@ -1208,6 +1216,20 @@ function validarDadosOpcionais() {
             camposErro.push("Nível de mercado inválido.");
         } else {
             erroNivel.textContent = "";
+        }
+    }
+
+    // 4. Validar Área de Atuação (Select)
+    const areaAtuacao = document.getElementById("area-atuacao");
+    const erroAreaAtuacao = document.getElementById('erro-area-atuacao');
+    if (areaAtuacao && erroAreaAtuacao) {
+        const valorArea = areaAtuacao.value.trim();
+        if (valorArea !== "" && !areaAtuacaoPermitidos.includes(valorArea)) {
+            valido = false;
+            erroAreaAtuacao.textContent = "Área de atuação inválida.";
+            camposErro.push("Área de atuação inválida.");
+        } else {
+            erroAreaAtuacao.textContent = "";
         }
     }
 
@@ -1350,14 +1372,13 @@ async function enviarFormularioObrigatorio() {
                 showModal({
                     title: "Dados enviados com sucesso!",
                     message:
-                        `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou, 
-                             e lembre-se da senha cadastrada: ${senha} e o e-mail referencia é o primeiro que você cadastrou: ${emails[0].email}`,
+                        `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou, e lembre-se:
+                        senha cadastrada: ${senha} 
+                        e-mail referencia que você cadastrou: ${emails[0].email}`,
                     type: "success",
                     showCancel: false,
                     confirmText: "Ok",
                     onConfirm: () => {
-                        /*document.getElementById("meuForm").reset(); 
-                        location.reload();*/
                         resolve(true)
                     }
                 });
@@ -1393,6 +1414,16 @@ async function enviarFormularioOpicionais() {
     const nivel = document.getElementById('nivel');
     const areaAtuacao = document.getElementById("area-atuacao");
     const curso = document.getElementById("curso");
+    const AreaAtuacao = [
+        "Administração",
+        "direito",
+        "tecnologia",
+        "engenharia",
+        "saúde",
+        "comunicação",
+        "ciências humanas",
+        "ciências naturais"
+    ]
     const Mercado = ["Estagiário",
         "Assistente/Auxiliar",
         "Júnior (JR)",
@@ -1413,12 +1444,12 @@ async function enviarFormularioOpicionais() {
         }
 
         if (areaAtuacao && areaAtuacao.value) {
-            dados += `<strong>Área de atuação</strong>: ${areaAtuacao.value}<br>`;
+            dados += `<strong>Área de atuação</strong>: ${AreaAtuacao[parseInt(areaAtuacao.value) - 1]}<br>`;
         }
 
         // Adiciona só se o campo existir
         if (nivel && nivel.value) {
-            dados += `<strong>Profissição</strong>: ${Mercado[parseInt(nivel.value)-1]}<br>`;
+            dados += `<strong>Profissição</strong>: ${Mercado[parseInt(nivel.value) - 1]}<br>`;
         }
 
         if (semestre.value) {
@@ -1454,8 +1485,8 @@ async function enviarFormularioOpicionais() {
                 const data = {
                     "id": itemID,
                     "idiomas": idiomaSelecionados?.map(id => id.id) ?? null,
-                    "area_atuacao": areaAtuacao?.value ?? null,
-                    "nivel_mercado": nivel?.value ?? null,
+                    "area_atuacao": parseInt(areaAtuacao?.value) ?? null,
+                    "nivel_mercado": parseInt(nivel?.value) ?? null,
                     "curso": curso?.value ?? null,
                     "semestre": semestre?.value ?? null,
                 }
@@ -1503,13 +1534,11 @@ async function enviarFormularioOpicionais() {
                     showModal({
                         title: "Dados enviados com sucesso!",
                         message:
-                            `Obrigado por ter respondido a segunda parte do Formulario`,
+                            `Valeu pelas informações adicionais! 💙`,
                         type: "success",
                         showCancel: false,
                         confirmText: "Ok",
                         onConfirm: () => {
-                            /*document.getElementById("meuForm").reset(); 
-                            location.reload();*/
                             resolve(true)
                         }
                     });
@@ -1541,34 +1570,9 @@ async function enviarFormularioOpicionais() {
         } else {
             mostrarSpinner();
             try {
-                /*const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                });
-         
-                if (!response.ok) {
-                    let backend = null;
-                    try { backend = await response.json(); } catch (_) { backend = null; }
-                    throw { status: response.status, backend };
-                }*/
-
                 esconderSpinner();
-                showModal({
-                    title: "Dados enviados com sucesso!",
-                    message:
-                        `Obrigado por ter respondido a segunda parte do Formulario`,
-                    type: "success",
-                    showCancel: false,
-                    confirmText: "Ok",
-                    onConfirm: () => {
-                        document.getElementById("meuForm").reset();
-                        location.reload();
-                    }
-                });
             } catch (err) {
                 esconderSpinner();
-
                 showModal({
                     title: err?.status === 400 ? "Erro de Validação" : "Falha ao Enviar",
                     message:
@@ -1943,7 +1947,7 @@ function showStage(index) {
 
 
 function updateButtons() {
-    btnPrev.disabled = currentStage === 0;
+    btnPrev.disabled = true//currentStage === 0;
 
     // Último stage → muda texto do botão
     if (currentStage === TOTAL_STAGES - 1) {
@@ -1982,11 +1986,13 @@ btnNext.addEventListener("click", async () => {
         passou = 0
         // 1. Volta para o primeiro estágio
         showStage(0);
-
         // 2. Reseta o formulário HTML (limpa inputs de texto, e-mail, etc.)
         const form = document.getElementById("meuForm");
-        if (form) form.reset();
-
+        if (form) {
+            form.reset();
+            location.reload();
+        }
+        
         // 3. Limpa campos específicos e variáveis de estado
         // Limpa o container de tags de idiomas
         idiomaSelecionados.length = 0;
@@ -2014,7 +2020,7 @@ function esperarModalFechar(modal) {
     return new Promise(resolve => {
         modal.addEventListener('hidden.bs.modal', function handler() {
             modal.removeEventListener('hidden.bs.modal', handler);
-            resolve();
+            resolve(false);
         });
     });
 }
