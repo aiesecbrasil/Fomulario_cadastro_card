@@ -59,7 +59,7 @@ const escritorios = [
 ];
 const stages = document.querySelectorAll(".stage");
 const btnNext = document.getElementById("btn-next");
-const btnPrev = document.getElementById("btn-prev");
+//const btnPrev = document.getElementById("btn-prev");
 const idiomas = document.getElementById("idiomas");
 const cursos = document.getElementById("cursos");
 const atuacao = document.getElementById("areas-atuacao");
@@ -1947,7 +1947,7 @@ function showStage(index) {
 
 
 function updateButtons() {
-    btnPrev.disabled = true//currentStage === 0;
+    //btnPrev.disabled = true//currentStage === 0;
 
     // Último stage → muda texto do botão
     if (currentStage === TOTAL_STAGES - 1) {
@@ -2026,11 +2026,11 @@ function esperarModalFechar(modal) {
 }
 
 
-btnPrev.addEventListener("click", () => {
-    /*if (currentStage > 0) {
+/*btnPrev.addEventListener("click", () => {
+    if (currentStage > 0) {
         showStage(currentStage - 1);
-    }*/
-});
+    }
+});*/
 
 // Inicializa corretamente
 showStage(0);
