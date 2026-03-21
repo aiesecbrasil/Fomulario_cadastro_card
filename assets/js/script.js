@@ -229,10 +229,13 @@ function buildCombo({
                 } else {
                     input.value = o.text;
                     hidden.value = o.id;
+
+                    // --- ADICIONE ESTAS LINHAS AQUI ---
+                    const event = new Event('change', { bubbles: true });
+                    hidden.dispatchEvent(event);
                 }
                 hideList();
             });
-
             list.appendChild(li);
         });
 
@@ -534,12 +537,18 @@ function criarCampos(programa, comite, anuncio, rota) {
             options: todasAiesecs,
             preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined // Use the preselectIndex calculated above
         });
-        // Update selectedCommitteeId when combo value changes
         const hiddenAiesec = document.getElementById('aiesec');
         if (hiddenAiesec) {
             hiddenAiesec.addEventListener('change', (event) => {
+                // O ID agora chega certinho aqui:
                 selectedCommitteeId = event.target.value;
-                selectedCommitteeText = event.target.options[event.target.selectedIndex].text;
+
+                // Como o input hidden não guarda o texto, pegamos do input visível:
+                const inputVisivel = document.getElementById('combo-input-aiesec');
+                if (inputVisivel) {
+                    selectedCommitteeText = inputVisivel.value;
+                }
+
             });
         }
 
@@ -582,7 +591,7 @@ function criarCamposOpicionais(idproduto) {
     idiomasDiv.innerHTML = `
         <label for="combo-input-idioma">Selecione ou digite os idiomas que você sabe falar</label>
         `;
-    todasOpcoes_idioma = campos.find(field => field.label === "Quais idiomas você fala?").config.settings.options.filter(opcoes => opcoes.status == "active").map(curr => ({ id: curr.id, text: curr.text })); 
+    todasOpcoes_idioma = campos.find(field => field.label === "Quais idiomas você fala?").config.settings.options.filter(opcoes => opcoes.status == "active").map(curr => ({ id: curr.id, text: curr.text }));
     buildCombo({
         container: idiomasDiv,
         inputId: 'combo-input-idioma',
@@ -1748,12 +1757,12 @@ async function preencherDropdown(parametros) {
         if (entryProduto) {
             const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));
             selectedProductId = idxProduto >= 0 ? todosProdutos[idxProduto].id : null;
-            console.log("Produto encontrado (UTM):", entryProduto.nome, "-> ID:", selectedProductId);
+            
         }
     } else if (parametros.rota) { // Se o UTM de produto estiver faltando, mas a rota estiver presente
         const productOption = todosProdutos.find(op => slugify(op.text) === parametros.rota);
         if (productOption) selectedProductId = productOption.id;
-        console.log("Produto encontrado (Rota):", productOption?.text, "-> ID:", selectedProductId);
+        
     }
 
     // 2. Comitê AIESEC
@@ -1763,7 +1772,7 @@ async function preencherDropdown(parametros) {
             const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
             selectedCommitteeId = idxCL >= 0 ? todasAiesecs[idxCL].id : null;
             selectedCommitteeText = entryCL.nome;
-            console.log("Comitê encontrado (UTM):", entryCL.nome, "-> ID:", selectedCommitteeId);
+            
         }
     }
 
@@ -1772,7 +1781,7 @@ async function preencherDropdown(parametros) {
         const entryCategoria = todasOpcoes_Como_Conheceu.find(opcoes => slugify(opcoes.text) === parametros.anuncio);
         if (entryCategoria) {
             selectedAdSourceId = entryCategoria.id;
-            console.log("Categoria de anúncio encontrada (UTM):", entryCategoria.text, "-> ID:", selectedAdSourceId);
+           
         }
     }
 
@@ -1794,7 +1803,7 @@ async function preencherDropdown(parametros) {
         const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
         if (entryTipoAnuncio) {
             selectedAdFormId = entryTipoAnuncio.id;
-            console.log("Forma de anúncio encontrada (UTM):", entryTipoAnuncio.text, "-> ID:", selectedAdFormId);
+           
         }
     }
 }
