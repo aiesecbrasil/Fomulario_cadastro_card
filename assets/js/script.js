@@ -60,16 +60,20 @@ const escritorios = [
 const stages = document.querySelectorAll(".stage");
 const btnNext = document.getElementById("btn-next");
 //const btnPrev = document.getElementById("btn-prev");
-const idiomas = document.getElementById("idiomas");
-const cursos = document.getElementById("cursos");
-const atuacao = document.getElementById("areas-atuacao");
-const mercado = document.getElementById("niveis-mercado");
+const idiomasDiv = document.getElementById("idiomas");
+const cursosDiv = document.getElementById("cursos"); // Renamed from 'cursos'
+const atuacaoDiv = document.getElementById("areas-atuacao"); // Renamed from 'atuacao'
+const mercadoDiv = document.getElementById("niveis-mercado"); // Renamed from 'mercado'
 const TOTAL_STAGES = stages.length;
 const idiomaSelecionados = [];
-const idComite = [];
-const idProduto = [];
-const idAnuncio = [];
-const idFormaAnuncio = [];
+
+// Global variables for selected IDs (single values, not arrays)
+let selectedProductId = null;
+let selectedCommitteeId = null;
+let selectedCommitteeText = null;
+let selectedAdSourceId = null;
+let selectedAdFormId = null;
+
 let itemID = 0;
 let passou = 0;
 let todasOpcoes_idioma;
@@ -187,11 +191,16 @@ function buildCombo({
         const t = term.trim().toLowerCase();
         list.innerHTML = '';
 
-        const filtradas = options.filter(o => {
+        // Adicionamos (options || []) para garantir que, se options for null/undefined, 
+        // ele use um array vazio e não quebre o código.
+        const filtradas = (options || []).filter(o => {
+            // 1. Filtro por texto (busca)
             if (!o.text.toLowerCase().includes(t)) return false;
 
+            // 2. Se usar tags, remove da lista o que já foi selecionado
             if (hasTags && selecionados.some(s => s.id === o.id)) return false;
 
+            // 3. Aplica um filtro customizado se existir
             if (hasTags && typeof filterOption === 'function') {
                 return filterOption(o, selecionados);
             }
@@ -220,10 +229,13 @@ function buildCombo({
                 } else {
                     input.value = o.text;
                     hidden.value = o.id;
+
+                    // --- ADICIONE ESTAS LINHAS AQUI ---
+                    const event = new Event('change', { bubbles: true });
+                    hidden.dispatchEvent(event);
                 }
                 hideList();
             });
-
             list.appendChild(li);
         });
 
@@ -393,13 +405,38 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
+
+        // Populate global option arrays once
+        todosProdutos = campos.find(field => field.label === "Produto")
+            .config.settings.options.filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text }));
+
+        todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?")
+            .config.settings.options.filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ") }));
+
+        todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?")
+            .config.settings.options.filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text }));
+
+        todasopçoes_Tipo_Anuncio = campos.find(field => field.label === "Como?")
+            .config.settings.options.filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text }));
+
+        // Initialize selectedId variables based on UTMs
+        // This function will now only set the global selectedId variables based on UTMs.
+        preencherDropdown(parametros);
+
+        // Now create dynamic fields and pre-select them using the selectedId variables
         criarCampos(parametros.produto, parametros.comite, parametros.anuncio, parametros.rota);
 
-        preencherDropdown(parametros);
+        // Add initial email and phone fields (moved from preencherDropdown)
+        addEmail();
+        addTelefone();
+
         alternarVisibilidadeSenha("password", "togglePassword");
         iniciarValidacaoSenha("password", "erro-senha");
     } catch (error) {
-        // Modal de erro em caso de falha de rede/parse
         showModal({
             title: "Erro de conexão",
             message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br",
@@ -427,12 +464,12 @@ document.addEventListener("DOMContentLoaded", async () => {
  * @param {string|undefined} rota Slug da rota (pode pré-selecionar produto)
  */
 function criarCampos(programa, comite, anuncio, rota) {
-    const programas = document.getElementById("produtos");
-    const aiesec = document.getElementById("aiesecs");
-    const conheceAiesec = document.getElementById("conheceAiesec");
+    const programasDiv = document.getElementById("produtos");
+    const aiesecDiv = document.getElementById("aiesecs");
+    const conheceAiesecDiv = document.getElementById("conheceAiesec");
 
     if (!programa) {
-        programas.innerHTML = `
+        programasDiv.innerHTML = `
         <label for="produto">Produto *</label>
                 <select id="produto" name="produto" required>
                     <option value>Carregando...</option>
@@ -440,7 +477,6 @@ function criarCampos(programa, comite, anuncio, rota) {
                 <div class="error-msg" id="erro-produto"></div>
         `
         //__________________________________________BOTÃO PRODUTO____________________________________________________
-
         // Cria o menu suspenso
         const dropdown = document.getElementById('produto');
         dropdown.innerHTML = '';
@@ -456,46 +492,17 @@ function criarCampos(programa, comite, anuncio, rota) {
         defaultOption.setAttribute('selected', '');
 
         //____________________________________________________________________________________________________
-
         //____________________________Lógica Produtos_____________________________________________________
-
-        // Encontra os produtos dentro dos objetos retornado pela API
-        let produtos = campos.find(field => field.label === "Produto");
-        const opcoesDeProduto = produtos.config.settings.options;
-
-        // Colocando todos os produtos em uma variável chamada todosProdutos
-        // A função reduce serve para fazer chamada recursiva de uma função em todos os elementos do array
-        todosProdutos = opcoesDeProduto.reduce(
-            function (prev, curr) {
-
-                if (curr.status == "active") {
-
-                    return [...prev, { id: curr.id, text: curr.text }];
-                }
-
-                return [...prev]
-
-            },
-            []
-        )
-
-        // Produto: obtém o índice com base na nova estrutura de siglaProduto [{sigla, nome}]
-        const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === programa);
-        indiceSigla = indiceProdutoPorSigla;
+        // Use the globally populated todosProdutos
         todosProdutos.forEach((produto, index) => {
             const newOption = document.createElement("option");
             newOption.value = produto.id;
             newOption.textContent = produto.text;
 
-            // Se o índice da sigla for igual ao índice do produto
-            if (index === indiceSigla) {
+            // Pre-select if selectedProductId was set by UTM/rota
+            if (selectedProductId !== null && String(produto.id) === String(selectedProductId)) {
                 newOption.selected = true;
-
-            } else if (rota == slugify(produto.text)) {
-                newOption.selected = true;
-
             }
-
             dropdown.appendChild(newOption);
         });
 
@@ -505,7 +512,10 @@ function criarCampos(programa, comite, anuncio, rota) {
         dropdown.removeAttribute("disabled");
 
         //________________________________________________________________________________________________
-
+        // Add event listener to update selectedProductId when user changes selection
+        dropdown.addEventListener('change', (event) => {
+            selectedProductId = event.target.value;
+        });
     }
     if (!comite) {
         aiesec.innerHTML = `
@@ -579,64 +589,81 @@ function criarCampos(programa, comite, anuncio, rota) {
         indiceSiglaComite = entryCL ? todasAiesecs.findIndex(
             o => slugify(o.text) === slugify(entryCL.nome) || slugify(o.text)
                 .includes(slugify(entryCL.nome))) : -1;
+        aiesecDiv.innerHTML = `
+        <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
+        `;
+
+        // Use the globally populated todasAiesecs
+        let preselectIndex = -1;
+        if (selectedCommitteeId !== null) {
+            preselectIndex = todasAiesecs.findIndex(o => o.id === selectedCommitteeId);
+        }
 
         buildCombo({
-            container: aiesec,
+            container: aiesecDiv,
             inputId: 'combo-input-aiesec',
             listId: 'combo-list-aiesec',
             hiddenId: 'aiesec',
-            placeholder: 'Digite ou selecione',
+            placeholder: 'Digite ou selecione', // Placeholder for the combo box
             options: todasAiesecs,
-            preselectIndex: indiceSiglaComite >= 0 ? indiceSiglaComite : undefined
+            preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined // Use the preselectIndex calculated above
         });
+        const hiddenAiesec = document.getElementById('aiesec');
+        if (hiddenAiesec) {
+            hiddenAiesec.addEventListener('change', (event) => {
+                // O ID agora chega certinho aqui:
+                selectedCommitteeId = event.target.value;
 
-        aiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
+                // Como o input hidden não guarda o texto, pegamos do input visível:
+                const inputVisivel = document.getElementById('combo-input-aiesec');
+                if (inputVisivel) {
+                    selectedCommitteeText = inputVisivel.value;
+                }
+
+            });
+        }
+
+        aiesecDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
     }
     if (!anuncio) {
-        conheceAiesec.innerHTML = `
+        conheceAiesecDiv.innerHTML = `
         <label for="combo-input-conheceu">Como você conheceu a AIESEC? *</label>
         `;
 
-        const comoConheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?");
-        const opçoes_Como_Conheceu = comoConheceu.config.settings.options;
-
-        todasOpcoes_Como_Conheceu = opçoes_Como_Conheceu.reduce((prev, curr) => {
-            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
-            return prev;
-        }, []);
-
-        listaAnuncio = todasOpcoes_Como_Conheceu.map(opcoes => slugify(opcoes.text));
-        indiceComoConheceuAiesec = listaAnuncio.indexOf(parametros.anuncio);
+        // Use the globally populated todasOpcoes_Como_Conheceu
+        let preselectIndex = -1;
+        if (selectedAdSourceId !== null) {
+            preselectIndex = todasOpcoes_Como_Conheceu.findIndex(o => o.id === selectedAdSourceId);
+        }
 
         buildCombo({
-            container: conheceAiesec,
+            container: conheceAiesecDiv,
             inputId: 'combo-input-conheceu',
             listId: 'combo-list-conheceu',
             hiddenId: 'conheceu',
-            placeholder: 'Digite ou selecione',
+            placeholder: 'Digite ou selecione', // Placeholder for the combo box
             options: todasOpcoes_Como_Conheceu,
-            preselectIndex: indiceComoConheceuAiesec >= 0 ? indiceComoConheceuAiesec : undefined
+            preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined // Use the preselectIndex calculated above
         });
+        // Update selectedAdSourceId when combo value changes
+        const hiddenConheceu = document.getElementById('conheceu');
+        if (hiddenConheceu) {
+            hiddenConheceu.addEventListener('change', (event) => {
+                selectedAdSourceId = event.target.value;
+            });
+        }
 
-        conheceAiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
+        conheceAiesecDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
 
 
 function criarCamposOpicionais(idproduto) {
-    idiomas.innerHTML = `
+    idiomasDiv.innerHTML = `
         <label for="combo-input-idioma">Selecione ou digite os idiomas que você sabe falar</label>
         `;
-
-    const idiomasConhece = campos.find(field => field.external_id === "possui-outro-idioma");
-    const opçoes_idioma = idiomasConhece.config.settings.options;
-
-    todasOpcoes_idioma = opçoes_idioma.reduce((prev, curr) => {
-        if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text }];
-        return prev;
-    }, []);
-
+    todasOpcoes_idioma = campos.find(field => field.label === "Quais idiomas você fala?").config.settings.options.filter(opcoes => opcoes.status == "active").map(curr => ({ id: curr.id, text: curr.text }));
     buildCombo({
-        container: idiomas,
+        container: idiomasDiv,
         inputId: 'combo-input-idioma',
         listId: 'combo-list-idioma',
         hiddenId: 'idiomas',
@@ -648,16 +675,16 @@ function criarCamposOpicionais(idproduto) {
     });
 
 
-    idiomas.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
+    idiomasDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-idioma">');
     if (idproduto == 1) {
-        cursos.innerHTML = `<label for="curso">Curso</label>
+        cursosDiv.innerHTML = `<label for="curso">Curso</label>
         <input type="text" id="curso" placeholder="Informe Seu curso"
                                 aria-required="true"
                                 aria-describedby="erro-curso" />
                             <span class="error-msg" id="erro-curso" role="alert"
                                 aria-live="polite"></span>`
     } else {
-        atuacao.innerHTML = `
+        atuacaoDiv.innerHTML = `
     <label for="area-atuacao">Sua Área de Atuação</label>
     <select id="area-atuacao" name="area-atuacao" aria-required="true" aria-describedby="erro-area-atuacao">
         <option value="" disabled selected>Selecione sua área</option>
@@ -671,8 +698,8 @@ function criarCamposOpicionais(idproduto) {
         <option value="8">Ciências Naturais</option>
     </select>
     <span class="error-msg" id="erro-area-atuacao" role="alert" aria-live="polite"></span>
-`;
-        mercado.innerHTML = `<div class="input-extra">
+    `;
+        mercadoDiv.innerHTML = `<div class="input-extra">
             <label for="nivel">Nível profissional</label>
             <select id="nivel" name="nivel">
                 <option value disabled selected>Selecione o nível</option>
@@ -1059,10 +1086,6 @@ inputVisivel.addEventListener('input', () => {
 function validarDadosObrigatorios() {
     let valido = true;
     const camposErro = [];
-    // 🔹 LIMPA ARRAYS (ESSENCIAL)
-    idProduto.length = 0;
-    idComite.length = 0;
-    idAnuncio.length = 0;
     // Nome e sobrenome
     const camposTexto = {
         nome: {
@@ -1084,11 +1107,11 @@ function validarDadosObrigatorios() {
         const erroEl = document.getElementById(`erro-${id}`);
 
         if (!regex.test(valor)) {
-            erroEl.textContent = config.erro;
+            erroEl.innerText = config.erro;
             valido = false;
             camposErro.push(`${config.label} inválido`);
         } else {
-            erroEl.textContent = "";
+            erroEl.innerText = "";
         }
     });
 
@@ -1096,10 +1119,10 @@ function validarDadosObrigatorios() {
         valido = false;
         camposErro.push(document.getElementById('password').value.length > 0 ? "Senha Inválida"
             : "A senha não pode ser vazia");
-        document.getElementById('erro-senha').textContent = document.getElementById('password').value.length > 0 ? "Senha Inválida"
+        document.getElementById('erro-senha').innerText = document.getElementById('password').value.length > 0 ? "Senha Inválida"
             : "A senha não pode ser vazia";
     } else {
-        document.getElementById('erro-senha').textContent = "";
+        document.getElementById('erro-senha').innerText = "";
     }
 
     // Email
@@ -1108,7 +1131,7 @@ function validarDadosObrigatorios() {
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
 
         if (!regex.test(valor)) {
-            document.getElementById('erro-email').textContent = "E-mail inválido.";
+            document.getElementById('erro-email').innerText = "E-mail inválido.";
             valido = false;
             camposErro.push("E-mail Inválido");
         } /*else {
@@ -1123,7 +1146,7 @@ function validarDadosObrigatorios() {
                 document.getElementById('erro-email').textContent = "";
             }
         }*/else {
-            document.getElementById('erro-email').textContent = "";
+            document.getElementById('erro-email').innerText = "";
         }
     });
 
@@ -1134,21 +1157,21 @@ function validarDadosObrigatorios() {
         const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
 
         if (!regex.test(valor)) {
-            erro.textContent = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
+            erro.innerText = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
             valido = false;
             camposErro.push("Telefone Inválido")
         } else {
-            erro.textContent = "";
+            erro.innerText = "";
         }
     });
 
     // Data
     if (!document.getElementById('nascimento').value) {
-        document.getElementById('erro-nascimento').textContent = "Data inválida.";
+        document.getElementById('erro-nascimento').innerText = "Data inválida.";
         valido = false;
         camposErro.push("Data Inválida")
     } else {
-        document.getElementById('erro-nascimento').textContent = "";
+        document.getElementById('erro-nascimento').innerText = "";
     }
         const universidade = document.getElementById("universidade");
         const erroUniversidade = document.getElementById("erro-universidade");
@@ -1190,23 +1213,42 @@ function validarDadosObrigatorios() {
             onValid: (campo) => {
                 idAnuncio.push(campo.value);
             }
-        }
+        },
+        produto: { textErro: "programa" },
+        aiesec: { textErro: "qual é o escritório mais próximo de você" },
+        conheceu: { textErro: "por onde conheceu a aiesec" }
     };
     Object.entries(camposSelect).forEach(([id, config]) => {
-        const campo = document.getElementById(id);
-        if (!campo) return;
+        let valueToCheck = null;
+
+        // Prioritize global selectedId if set by UTM
+        if (id === 'produto') valueToCheck = selectedProductId;
+        else if (id === 'aiesec') valueToCheck = selectedCommitteeId;
+        else if (id === 'conheceu') valueToCheck = selectedAdSourceId;
+
+        // If the dropdown exists, prioritize its current value (user selection)
+        const campoElement = document.getElementById(id);
+        if (campoElement) {
+            if (campoElement.tagName === 'SELECT') { // Regular select dropdown
+                if (campoElement.value) valueToCheck = campoElement.value;
+            } else if (campoElement.type === 'hidden') { // Combo box hidden input
+                if (campoElement.value) valueToCheck = campoElement.value;
+            }
+        }
 
         const erroEl = document.getElementById(`erro-${id}`);
 
-        if (!campo.value) {
-            erroEl.textContent = `Selecione ou digite uma opção de ${config.textErro}.`;
+        if (!valueToCheck) {
+            if (erroEl) { // Só entra aqui se o elemento existir no HTML
+                erroEl.innerText = `Selecione ou digite uma opção de ${config.textErro}.`;
+            }
             valido = false;
             camposErro.push(`Selecione ou digite uma opção de ${config.textErro}.`);
-            return;
+        } else {
+            if (erroEl) {
+                erroEl.innerText = "";
+            }
         }
-
-        erroEl.textContent = "";
-        config.onValid?.(campo);
     });
 
 
@@ -1238,7 +1280,7 @@ function validarDadosOpcionais() {
     let valido = true;
     const camposErro = [];
     const nivelMercadoPermitidos = ["1", "2", "3", "4", "5", "6", "7"];
-    const areaAtuacaoPermitidos = ["1", "2", "3", "4", "5", "6", "7","8"];
+    const areaAtuacaoPermitidos = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
     // Função auxiliar para validar na hora e evitar erro de 'null'
     function validarImediato(id, erroId) {
@@ -1418,23 +1460,24 @@ async function enviarFormularioObrigatorio() {
             await esperarModalFechar(modal);
 
             const mapeamentoProgramas = { 1: 7, 3: 8, 6: 8, 4: 9 };
-            const idprograma = mapeamentoProgramas[idProduto[0]] || 0;
             const data = {
+                // Use the global selectedId variables
                 nome,
                 sobrenome,
                 senha,
-                idprograma,
-                nomeCL: aiesecTexto.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '').replace(/\s+/g, ' ').trim(),
+                idprograma: selectedProductId == 1 ? 7 : selectedProductId == 3 || selectedProductId == 6 ? 8 : selectedProductId == 4 ? 9 : null,
+                nomeCL: selectedCommitteeText.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '').replace(/\s+/g, ' ').trim(),
                 emails: emailsEnvio,
                 telefones: telefonesEnvio,
                 dataNascimento: inputISO.value,
-                idProduto: idProduto[0],
-                idComite: idComite[0],
-                idCategoria: idAnuncio[0],
+                idProduto: selectedProductId,
+                idComite: selectedCommitteeId,
+                idCategoria: selectedAdSourceId,
                 idAutorizacao: "1",
-                idAnuncio: idFormaAnuncio[0] || 0,
+                idAnuncio: selectedAdFormId || 0,
                 tag: slugify(parametros.campanha)
             };
+            //console.log(data)
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
@@ -1448,7 +1491,7 @@ async function enviarFormularioObrigatorio() {
                     throw { status: response.status, backend };
                 }
                 const result = await response.json(); // 👈 AQUI
-
+                //console.log(result)
                 itemID = result.data.item_id;              // 👈 AQUI
                 esconderSpinner();
                 showModal({
@@ -1826,65 +1869,61 @@ function alternarVisibilidadeSenha(idSenha, idToggle) {
  * @param {ParametrosURL} parametros
  */
 async function preencherDropdown(parametros) {
-    if (parametros.produto && parametros.comite && parametros.anuncio) {
-        // Produto: com a nova estrutura [{sigla, nome}], localiza o índice pela sigla
+    // 1. Produto
+    if (parametros.produto) {
         const indiceProdutoPorSigla = siglaProduto.findIndex(p => p.sigla === parametros.produto);
-        indiceSigla = indiceProdutoPorSigla;
-
-        todosProdutos = campos.find(field => field.label === "Produto").config.settings.options.filter(opcoes => opcoes.status == "active");
-        idProduto = todosProdutos.filter((_, index) => index === indiceSigla).map(i => i.id);
         const entryProduto = siglaProduto.find(p => p.sigla === parametros.produto);
         if (entryProduto) {
             const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));
-            idProduto.push(idxProduto >= 0 ? todosProdutos[idxProduto].id : null);
-        } else {
-            idProduto.push(null);
+            selectedProductId = idxProduto >= 0 ? todosProdutos[idxProduto].id : null;
+            
         }
+    } else if (parametros.rota) { // Se o UTM de produto estiver faltando, mas a rota estiver presente
+        const productOption = todosProdutos.find(op => slugify(op.text) === parametros.rota);
+        if (productOption) selectedProductId = productOption.id;
+        
+    }
 
-        // AIESEC: resolve por nome por extenso com base na sigla informada (utm_term)
-        todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?").config.settings.options.filter(opcoes => opcoes.status == "active");
+    // 2. Comitê AIESEC
+    if (parametros.comite) {
         const entryCL = escritorios.find(e => e.sigla === parametros.comite);
         if (entryCL) {
             const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
-            idComite.push(idxCL >= 0 ? todasAiesecs[idxCL].id : null);
-        } else {
-            idComite.push(null);
-        }
-
-        // Como conheceu: mantém correspondência por slug
-        todasOpcoes_Como_Conheceu = campos.find(field => field.label === "Como você conheceu a AIESEC?").config.settings.options.filter(opcoes => opcoes.status == "active");
-        const entryCategoria = todasOpcoes_Como_Conheceu.find(opcoes => slugify(opcoes.text) === parametros.anuncio);
-        if (entryCategoria) {
-            idAnuncio.push(entryCategoria.id);
-        } else {
-            idAnuncio.push(null);
+            selectedCommitteeId = idxCL >= 0 ? todasAiesecs[idxCL].id : null;
+            selectedCommitteeText = entryCL.nome;
+            
         }
     }
 
-    addEmail();
-    addTelefone();
+    // 3. Como conheceu a AIESEC
+    if (parametros.anuncio) {
+        const entryCategoria = todasOpcoes_Como_Conheceu.find(opcoes => slugify(opcoes.text) === parametros.anuncio);
+        if (entryCategoria) {
+            selectedAdSourceId = entryCategoria.id;
+           
+        }
+    }
 
-    const tipoAnuncio = campos.find(field => field.label === "Como?");
-    const opçoes_Tipo_Anuncio = tipoAnuncio.config.settings.options;
+    // 4. Forma de anúncio
+    if (parametros.formaAnuncio) {
+        // `todasopçoes_Tipo_Anuncio` já deve estar populado globalmente em DOMContentLoaded
+        // const tipoAnuncio = campos.find(field => field.label === "Como?");
+        // const opçoes_Tipo_Anuncio = tipoAnuncio.config.settings.options;
+        // var todasopçoes_Tipo_Anuncio = opçoes_Tipo_Anuncio.reduce(
+        //     function (prev, curr) {
+        //         if (curr.status == "active") {
+        //             return [...prev, { id: curr.id, text: curr.text }];
+        //         }
+        //         return [...prev]
+        //     },
+        //     []
+        // )
 
-    var todasopçoes_Tipo_Anuncio = opçoes_Tipo_Anuncio.reduce(
-        function (prev, curr) {
-
-            if (curr.status == "active") {
-                return [...prev, { id: curr.id, text: curr.text }];
-            }
-
-            return [...prev]
-
-        },
-        []
-    )
-    // Forma de anúncio: mantém comparação por slug
-    const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
-    if (entryTipoAnuncio) {
-        idFormaAnuncio.push(entryTipoAnuncio.id);
-    } else {
-        idFormaAnuncio.push(null);
+        const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
+        if (entryTipoAnuncio) {
+            selectedAdFormId = entryTipoAnuncio.id;
+           
+        }
     }
 }
 
@@ -2059,7 +2098,7 @@ btnNext.addEventListener("click", async () => {
 
         if (currentStage < TOTAL_STAGES - 1) {
             showStage(currentStage + 1);
-            criarCamposOpicionais(idProduto[0]);
+            criarCamposOpicionais(selectedProductId);
             passou += 1
         }
     } else if (validarDadosOpcionais() && passou == 1 && currentStage === 1) {
@@ -2074,7 +2113,7 @@ btnNext.addEventListener("click", async () => {
             form.reset();
             location.reload();
         }
-        
+
         // 3. Limpa campos específicos e variáveis de estado
         // Limpa o container de tags de idiomas
         idiomaSelecionados.length = 0;
