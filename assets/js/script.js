@@ -1107,12 +1107,6 @@ function validarDadosObrigatorios() {
                 );
             }
         },
-        aiesec: {
-            textErro: "qual é o escritório mais próximo de você",
-            onValid: (campo) => {
-                idComite.push(campo.value);
-            }
-        },
         conheceu: {
             textErro: "por onde conheceu a aiesec",
             onValid: (campo) => {
