@@ -509,8 +509,35 @@ function criarCampos(programa, comite, anuncio, rota) {
     }
     if (!comite) {
         aiesec.innerHTML = `
-        <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
+        <div class="input-extra">
+            <label for="combo-input-aiesec">Qual é a sua universidade? *</label>
+            <select id="universidade" name="universidade">
+                <option value="" disabled select>Selecione sua universidade</option>
+                <option value="FIAP">FIAP</option>
+                <option value="USP">USP</option>
+                <option value="Mackenzie">Mackenzie</option>
+                <option value="PUC">PUC</option>
+                <option value="UNESP">UNESP</option>                
+                <option value="UNICAMP">UNICAMP</option>
+                <option value="Outra">Outra</option>
+            </select>
+            <div class="error-msg" id="erro-universidade"></div>
+        </div>
+
+        <div class="input-extra checkbox-group" style ="margin-top: 10px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="sem-universidade" name="sem-universidade" />
+                <span>Minha uiversidade não está listada ou não estou mais cursando graduação</span>
+            </label>
+        </div>
+
+        <div id="cointainer-aiesec-proxima" style="display: none; margin-top: 15px;">
+            <label for="combo-input-aiesec">Qual é a AEISEC mais próxima de você? *</label>
+        </div>
         `;
+
+        const containerAiesecProxima = document.getElementById("container-aiesec-proxima");
+        const checkboxSemUniversidade = document.getElementById("sem-universidade");
 
         const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
         const aiesecs = aiesecProx.config.settings.options;
@@ -520,6 +547,33 @@ function criarCampos(programa, comite, anuncio, rota) {
             return prev;
         }, []);
 
+        buildCombo({
+            container: containerAiesecProxima,
+            inputId: 'combo-input-aiesec',
+            listId: 'combo-list-aiesec',
+            hiddenId: 'aiesec',
+            placeholder: 'Digite ou selecione',
+            options: todasAiesecs
+        });
+
+        containerAiesecProxima.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
+
+        checkboxSemUniversidade.addEventListener("change", function() {
+            if (this.checked) {
+                containerAiesecProxima.style.display ="block";
+            } else {
+                containerAiesecProxima.style.display = "none";
+                const inputAiesec = document.getElementById("combo-input-aiesec");
+                const hiddenAiesec = document.getElementById("aiesec");
+
+                if (inputAiesec) inputAiesec.value = "";
+                if (hiddenAiesec) hiddenAiesec.value = "";
+
+                const erroAiesec = document.getElementById("erro-aiesec0");
+                if (erroAiesec) erroAiesec.textContent = "";
+            }
+        });
+    }
         // Localiza o índice do CL com base na sigla (utm_term) e compara por nome por extenso 
         const entryCL = escritorios.find(e => e.sigla === comite);
         indiceSiglaComite = entryCL ? todasAiesecs.findIndex(
@@ -567,7 +621,6 @@ function criarCampos(programa, comite, anuncio, rota) {
         conheceAiesec.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
 
-}
 
 function criarCamposOpicionais(idproduto) {
     idiomas.innerHTML = `
@@ -1097,6 +1150,31 @@ function validarDadosObrigatorios() {
     } else {
         document.getElementById('erro-nascimento').textContent = "";
     }
+        const universidade = document.getElementById("universidade");
+        const erroUniversidade = document.getElementById("erro-universidade");
+        const semUniversidade = document.getElementById("sem-universidade");
+        const campoAiesec = document.getElementById("aiesec");
+        const erroAiesec = document.getElementById("erro-aiesec");
+
+    if (universidade && !semUniversidade?.checked) {
+        if (!universidade.value) {
+            erroUniversidade.textContent = "Selecione sua universidade.";
+            valido = false;
+            camposErro.push("Selecione sua universidade.");
+        } else {
+            erroUniversidade.textContent = "";
+        }
+    }
+
+    if (semUniversidade?.checked) {
+        if (!campoAiesec || !campoAiesec.value) {
+            if (erroAiesec) erroAiesec.textContent = "Selecione ou digite a AIESEC mais próxima de você.";
+            valido = false;
+            camposErro.push("Selecione ou digite a AIESEC mais próxima de você.");
+        } else {
+            if (erroAiesec) erroAiesec.textContent = "";
+        }
+    }
 
     const camposSelect = {
         produto: {
@@ -1290,11 +1368,21 @@ async function enviarFormularioObrigatorio() {
             dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
+        const universidadeTexto = document.getElementById('universidade')?.value || '';
+        const semUniversidade = document.getElementById('sem-universidade')?.checked || false;
         const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
         const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
-        if (aiesecTexto) {
-            dados += `<strong>AIESEC</strong>: ${aiesecTexto}<br>`;
+
+        if (universidadeTexto && !semUniversidade) {
+    dados += `<strong>Universidade</strong>: ${universidadeTexto}<br>`;
+}
+
+        if (semUniversidade && aiesecTexto) {
+            dados += `<strong>AIESEC mais próxima</strong>: ${aiesecTexto}<br>`;
         }
+        if (semUniversidade && aiesecTexto) {
+        dados += `<strong>AIESEC mais próxima</strong>: ${aiesecTexto}<br>`;
+         }
         if (conheceuTexto) {
             dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
         }
