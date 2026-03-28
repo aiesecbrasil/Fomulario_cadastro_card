@@ -253,7 +253,6 @@ function getAiesecIdFromNome(nomeCL) {
         const slug = slugify(text);
         return slug === normalized || slug.includes(normalized) || normalized.includes(slug);
     });
-
     return match ? match.id : null;
 }
 
@@ -1548,7 +1547,7 @@ async function enviarFormularioObrigatorio() {
         const semUniversidade = document.getElementById('sem-universidade')?.checked || false;
         const aiesecTexto = document.getElementById('combo-input-aiesec')?.value?.trim() || '';
         const conheceuTexto = document.getElementById('combo-input-conheceu')?.value?.trim() || '';
-
+        const escritorioData = todasAiesecs.find(o => o.text.toLowerCase() === aiesecTexto.toLowerCase()) || null;
         const nomeCLUniversidade = getNomeCLFromUniversidade(universidadeInput, produtoSlug);
         const nomeCL = nomeCLUniversidade || aiesecTexto || 'Aiesec mais próxima';
 
@@ -1560,10 +1559,68 @@ async function enviarFormularioObrigatorio() {
             }
         }
 
-        if (!selectedCommitteeId && aiesecTexto) {
-            const committeeIdMapeado = getAiesecIdFromNome(aiesecTexto);
+        if (aiesecTexto) {
+            const divisaoMercadoGT = {
+            "abc": "AIESEC no Brasil",
+            "aracaju": "AIESEC em Aracaju",
+            "bauru": "AIESEC em Limeira",
+            "belo horizonte": "AIESEC em Belo Horizonte",
+            "brasília": "AIESEC no Brasil",
+            "curitiba": "AIESEC no Brasil",
+            "florianópolis": "AIESEC em Florianópolis",
+            "franca": "AIESEC no Brasil",
+            "fortaleza": "AIESEC em Fortaleza",
+            "joão pessoa": "AIESEC no Brasil",
+            "limeira": "AIESEC em Limeira",
+            "maceio": "AIESEC no Brasil",
+            "manaus": "AIESEC no Brasil",
+            "maringá": "AIESEC em Maringá",
+            "porto alegre": "AIESEC em Porto Alegre",
+            "recife": "AIESEC no Brasil",
+            "rio de janeiro": "AIESEC no Rio de Janeiro",
+            "salvador": "AIESEC no Brasil",
+            "santa maria": "AIESEC no Brasil",
+            "getúlio vargas": "AIESEC em São Paulo Unidade Getúlio Vargas",
+            "mackenzie": "AIESEC em São Paulo Unidade Mackenzie",
+            "usp": "AIESEC no Brasil",
+            "sorocaba": "AIESEC no Brasil",
+            "uberlândia": "AIESEC em Uberlândia",
+            "vitória": "AIESEC no Brasil",
+            "brasil": "AIESEC no Brasil"
+          };
+
+          const divisaoMercadoGV = {
+            "abc": "AIESEC no Brasil",
+            "aracaju": "AIESEC em Aracaju",
+            "bauru": "AIESEC em Limeira",
+            "belo horizonte": "AIESEC em Belo Horizonte",
+            "brasília": "AIESEC no Brasil",
+            "curitiba": "AIESEC no Brasil",
+            "florianópolis": "AIESEC em Florianópolis",
+            "franca": "AIESEC no Brasil",
+            "fortaleza": "AIESEC em Fortaleza",
+            "joão pessoa": "AIESEC em João Pessoa",
+            "limeira": "AIESEC em Limeira",
+            "maceio": "AIESEC no Brasil",
+            "manaus": "AIESEC no Brasil",
+            "maringá": "AIESEC no Brasil",
+            "porto alegre": "AIESEC no Brasil",
+            "recife": "AIESEC em Recife",
+            "rio de janeiro": "AIESEC no Rio de Janeiro",
+            "salvador": "AIESEC em Salvador",
+            "santa maria": "AIESEC em Santa Maria",
+            "getúlio vargas": "AIESEC em São Paulo Unidade Getúlio Vargas",
+            "mackenzie": "AIESEC em São Paulo Unidade Mackenzie",
+            "usp": "AIESEC no Brasil",
+            "sorocaba": "AIESEC no Brasil",
+            "uberlândia": "AIESEC em Uberlândia",
+            "vitória": "AIESEC em Vitória",
+            "brasil": "AIESEC no Brasil"
+          };
+          const divisaoMercado = (selectedProductId == 1) ? divisaoMercadoGV : divisaoMercadoGT;
+            const committeeIdMapeado = getAiesecIdFromNome(divisaoMercado[aiesecTexto.replace("AIESEC em ", "").replace("AIESEC no ", "").toLowerCase()]);
             selectedCommitteeId = committeeIdMapeado || aiesecTexto;
-            selectedCommitteeText = selectedCommitteeText || aiesecTexto;
+            selectedCommitteeText = divisaoMercado[aiesecTexto.replace("AIESEC em ", "").replace("AIESEC no ", "").toLowerCase().toLowerCase()] || aiesecTexto;
         }
 
         if (!selectedCommitteeId) {
@@ -1641,7 +1698,7 @@ async function enviarFormularioObrigatorio() {
                 idAnuncio: selectedAdFormId || 0,
                 tag: slugify(parametros.campanha)
             };
-
+            console.log(data)
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
