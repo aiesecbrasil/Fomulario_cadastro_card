@@ -1702,7 +1702,7 @@ async function enviarFormularioObrigatorio() {
                 idAnuncio: selectedAdFormId || 0,
                 tag: slugify(parametros.campanha)
             };
-            console.log(data)
+            
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
