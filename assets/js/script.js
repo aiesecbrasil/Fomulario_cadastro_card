@@ -78,6 +78,7 @@ let itemID = 0;
 let passou = 0;
 let todasOpcoes_idioma;
 let campos;
+let universidades;
 let listaAnuncio;
 let indiceComoConheceuAiesec;
 let indiceSiglaComite;
@@ -93,6 +94,168 @@ let todasOpcoes_Como_Conheceu;
 let currentStage = 0; // começa no primeiro stage
 containerEmail.innerHTML = '';
 containerTelefone.innerHTML = '';
+
+/**
+ * Mapeia produto (texto) para slug usado no set de universidades (gv/gt).
+ * @param {string} textoProduto
+ * @returns {'gv'|'gt'|'unknown'}
+ */
+function getProdutoSlug(textoProduto) {
+    const slug = String(textoProduto || '').toLowerCase();
+    if (slug.includes('gv') || slug.includes('volunt')) return 'gv';
+    if (slug.includes('gt') || slug.includes('talento')) return 'gt';
+    return 'unknown';
+}
+
+/**
+ * Retorna array de opções de universidade no formato esperado por buildCombo.
+ * @param {'gv'|'gt'|'unknown'} produtoSlug
+ * @returns {{id:string|number,text:string}[]}
+ */
+function getUniversidadesPorProduto(produtoSlug) {
+    const optionKey = produtoSlug === 'gv' ? 'ogv' : 'ogt';
+
+    let source = universidades;
+    if (universidades?.universidades) {
+        source = universidades.universidades;
+    }
+
+    if (!source || (typeof source !== 'object' && !Array.isArray(source))) {
+        return [];
+    }
+
+    const normalizeId = (item, name) => {
+        if (!item && !name) return null;
+
+        if (typeof item === 'string') {
+            return item;
+        }
+
+        const possibleId = item[optionKey] || item[optionKey?.toLowerCase?.()] || item['ogv'] || item['ogt'] || item.id || name;
+        if (possibleId == null) return null;
+        return String(possibleId).trim();
+    };
+
+    const normalizeText = (item, name) => {
+        const rawText = item?.nome || item?.text || item?.label || name || '';
+        const lower = String(rawText).toLowerCase();
+
+        if (lower.includes('mc bazi')) {
+            return 'Aiesec no Brasil';
+        }
+
+        return String(rawText).trim();
+    };
+
+    let lista = [];
+
+    if (Array.isArray(source)) {
+        lista = source
+            .filter(u => u && (u.nome || u.text || u.label))
+            .map(u => {
+                const text = normalizeText(u);
+                let id = normalizeId(u, text);
+
+                if (text.toLowerCase().includes('aiesec no brasil')) {
+                    id = 'Aiesec no Brasil';
+                }
+
+                return {
+                    id: id || text,
+                    text
+                };
+            });
+    } else {
+        lista = Object.entries(source || {})
+            .filter(([nome, data]) => nome && data)
+            .map(([nome, data]) => {
+                const text = normalizeText(data, nome);
+                let id = normalizeId(data, nome);
+
+                if (text.toLowerCase().includes('aiesec no brasil')) {
+                    id = 'Aiesec no Brasil';
+                }
+
+                return {
+                    id: id || text,
+                    text
+                };
+            });
+    }
+
+    if (!lista.length) {
+        lista = [
+            { id: 'FIAP', text: 'FIAP' },
+            { id: 'USP', text: 'USP' },
+            { id: 'Mackenzie', text: 'Mackenzie' },
+            { id: 'PUC', text: 'PUC' },
+            { id: 'UNESP', text: 'UNESP' },
+            { id: 'UNICAMP', text: 'UNICAMP' }
+        ];
+    }
+
+    if (!lista.some(item => String(item.text).toLowerCase() === 'outra')) {
+        lista.push({ id: 'Outra', text: 'Outra' });
+    }
+
+    return lista;
+}
+
+function getSelectedProductSlug() {
+    // Primeiro tenta via selectedProductId e estruturada todosProdutos
+    if (selectedProductId && Array.isArray(todosProdutos)) {
+        const produto = todosProdutos.find(p => String(p.id) === String(selectedProductId));
+        if (produto && produto.text) return getProdutoSlug(produto.text);
+    }
+
+    // Fallback: procura no select HTML
+    const produtoSelect = document.getElementById('produto');
+    if (produtoSelect && produtoSelect.options.length > 0) {
+        const selectedOpt = produtoSelect.options[produtoSelect.selectedIndex];
+        if (selectedOpt && selectedOpt.text) {
+            return getProdutoSlug(selectedOpt.text);
+        }
+    }
+
+    return 'unknown';
+}
+
+function getNomeCLFromUniversidade(universidadeText, produtoSlug) {
+    if (!universidadeText || !produtoSlug) return null;
+
+    // Usar a estrutura enviada pelo backend: universidades[universidade]
+    const source = universidades?.universidades || universidades;
+    if (!source || typeof source !== 'object') return null;
+
+    const normalized = universidadeText.trim().toLowerCase();
+    const key = Object.keys(source).find(k => String(k).trim().toLowerCase() === normalized);
+    const entry = key ? source[key] : source[universidadeText];
+    if (!entry || typeof entry !== 'object') return null;
+
+    const optKey = produtoSlug === 'gv' ? 'ogv' : 'ogt';
+    let value = entry[optKey] || entry[optKey.toLowerCase?.()] || entry['ogv'] || entry['ogt'];
+    if (value) return String(value).trim();
+
+    // fallback, se for fornecido um objeto com nome-text
+    if (entry.nome || entry.text || entry.label) {
+        return String(entry.nome || entry.text || entry.label).trim();
+    }
+
+    return null;
+}
+
+function getAiesecIdFromNome(nomeCL) {
+    if (!nomeCL || !Array.isArray(todasAiesecs)) return null;
+
+    const normalized = slugify(String(nomeCL).trim().replace(/\s+/g, ' '));
+    const match = todasAiesecs.find(o => {
+        const text = String(o.text || o.id || '').trim();
+        const slug = slugify(text);
+        return slug === normalized || slug.includes(normalized) || normalized.includes(slug);
+    });
+
+    return match ? match.id : null;
+}
 
 // Helper para construir um combo com filtro (autocomplete)
 /**
@@ -385,13 +548,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Verificação de segurança mais completa
         // Campos dinamicamente configuráveis vindos do backend (formio like)
         campos = data?.data?.fields;
+        universidades = data?.universidades;
 
-        // Verfica se o dado campos é não nulo
-        if (!campos) {
-            // Modal de erro (centralizado via função reutilizável)
+        // Verfica se o dado campos é não nulo e com estrutura esperada
+        const camposValidos = Array.isArray(campos) && campos.length > 0;
+        if (!camposValidos) {
             showModal({
                 title: "Erro de conexão",
-                message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br",
+                message: "Não foi possível carregar os dados necessários do servidor.\nPor favor, recarregue a página e tente novamente.",
                 type: "error",
                 showConfirm: false,
                 showCancel: true,
@@ -403,12 +567,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
 
             console.error("A comunicação não foi corretamente estabelecida. Recarregue a página");
+            return; // interrompe o fluxo para evitar erro de find em undefined
         }
         // aqui você já pode chamar funções que dependem dos parâmetros
 
-        // Populate global option arrays once
-        todosProdutos = campos.find(field => field.label === "Produto")
-            .config.settings.options.filter(opcoes => opcoes.status == "active")
+        // Populate global option arrays once, com tolerância a dados faltantes
+        const produtoField = campos.find(field => field.label === "Produto");
+        const aiesecField = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
+        const comoConheceuField = campos.find(field => field.label === "Como você conheceu a AIESEC?");
+        const formaAnuncioField = campos.find(field => field.label === "Como?");
+
+        todosProdutos = (produtoField?.config?.settings?.options || [])
+            .filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text }));
+
+        todasAiesecs = (aiesecField?.config?.settings?.options || [])
+            .filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ") }));
+
+        todasOpcoes_Como_Conheceu = (comoConheceuField?.config?.settings?.options || [])
+            .filter(opcoes => opcoes.status == "active")
+            .map(curr => ({ id: curr.id, text: curr.text }));
+
+        todasopçoes_Tipo_Anuncio = (formaAnuncioField?.config?.settings?.options || [])
+            .filter(opcoes => opcoes.status == "active")
             .map(curr => ({ id: curr.id, text: curr.text }));
 
         todasAiesecs = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?")
@@ -465,6 +647,7 @@ document.addEventListener("DOMContentLoaded", async () => {
  */
 function criarCampos(programa, comite, anuncio, rota) {
     const programasDiv = document.getElementById("produtos");
+    const universidadesDiv = document.getElementById("universidades");
     const aiesecDiv = document.getElementById("aiesecs");
     const conheceAiesecDiv = document.getElementById("conheceAiesec");
 
@@ -518,44 +701,44 @@ function criarCampos(programa, comite, anuncio, rota) {
         });
     }
     if (!comite) {
-        aiesec.innerHTML = `
-        <div class="input-extra">
-            <label for="combo-input-aiesec">Qual é a sua universidade? *</label>
-            <select id="universidade" name="universidade">
-                <option value="" disabled select>Selecione sua universidade</option>
-                <option value="FIAP">FIAP</option>
-                <option value="USP">USP</option>
-                <option value="Mackenzie">Mackenzie</option>
-                <option value="PUC">PUC</option>
-                <option value="UNESP">UNESP</option>                
-                <option value="UNICAMP">UNICAMP</option>
-                <option value="Outra">Outra</option>
-            </select>
+        universidadesDiv.innerHTML = `
+        <div id="container-universidades">
+            <label for="combo-input-universidades">Qual é a sua universidade? *</label>
             <div class="error-msg" id="erro-universidade"></div>
         </div>
 
-        <div class="input-extra checkbox-group" style ="margin-top: 10px;">
+        <div class="input-extra checkbox-group" style="margin-top: 10px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="sem-universidade" name="sem-universidade" />
-                <span>Minha uiversidade não está listada ou não estou mais cursando graduação</span>
+                <span>Minha universidade não está listada ou não estou mais cursando graduação</span>
             </label>
         </div>
+        `;
 
-        <div id="cointainer-aiesec-proxima" style="display: none; margin-top: 15px;">
-            <label for="combo-input-aiesec">Qual é a AEISEC mais próxima de você? *</label>
+        const containerUniversidades = document.getElementById("container-universidades");
+        const produtoSlug = getProdutoSlug(programa || todosProdutos.find(p => String(p.id) === String(selectedProductId))?.text || '');
+        const optionsUniversidades = getUniversidadesPorProduto(produtoSlug);
+
+        buildCombo({
+            container: containerUniversidades,
+            inputId: 'combo-input-universidades',
+            listId: 'combo-list-universidades',
+            hiddenId: 'universidade',
+            placeholder: 'Digite ou selecione',
+            options: optionsUniversidades
+        });
+
+        aiesecDiv.innerHTML = `
+        <div id="container-aiesec-proxima" style="display: none; margin-top: 15px;">
+            <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
         </div>
+        <div class="error-msg" id="erro-aiesec"></div>
         `;
 
         const containerAiesecProxima = document.getElementById("container-aiesec-proxima");
         const checkboxSemUniversidade = document.getElementById("sem-universidade");
-
-        const aiesecProx = campos.find(field => field.label === "Qual é a AIESEC mais próxima de você?");
-        const aiesecs = aiesecProx.config.settings.options;
-
-        todasAiesecs = aiesecs.reduce((prev, curr) => {
-            if (curr.status == "active") return [...prev, { id: curr.id, text: curr.text.replace(/\s*-\s*/g, " ") }];
-            return prev;
-        }, []);
+        const universidadeInput = document.getElementById("combo-input-universidades");
+        const universidadeHidden = document.getElementById("universidade");
 
         buildCombo({
             container: containerAiesecProxima,
@@ -566,34 +749,61 @@ function criarCampos(programa, comite, anuncio, rota) {
             options: todasAiesecs
         });
 
-        containerAiesecProxima.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
-
-        checkboxSemUniversidade.addEventListener("change", function() {
+        checkboxSemUniversidade.addEventListener("change", function () {
             if (this.checked) {
-                containerAiesecProxima.style.display ="block";
+                containerAiesecProxima.style.display = "block";
+                if (universidadeInput) {
+                    universidadeInput.value = "";
+                    universidadeInput.disabled = true;
+                }
+                if (universidadeHidden) {
+                    universidadeHidden.value = "";
+                }
             } else {
                 containerAiesecProxima.style.display = "none";
+                if (universidadeInput) {
+                    universidadeInput.disabled = false;
+                }
+                // Mantém a universidade selecionada quando desmarca "sem universidade".
+                // Não limpar o valor aqui permite manter ou restaurar a seleção.
+
                 const inputAiesec = document.getElementById("combo-input-aiesec");
                 const hiddenAiesec = document.getElementById("aiesec");
 
                 if (inputAiesec) inputAiesec.value = "";
                 if (hiddenAiesec) hiddenAiesec.value = "";
 
-                const erroAiesec = document.getElementById("erro-aiesec0");
+                const erroAiesec = document.getElementById("erro-aiesec");
                 if (erroAiesec) erroAiesec.textContent = "";
             }
+
+            const erroUniversidade = document.getElementById("erro-universidade");
+            if (erroUniversidade) erroUniversidade.textContent = "";
         });
-    }
-        // Localiza o índice do CL com base na sigla (utm_term) e compara por nome por extenso 
+
+        if (universidadeHidden) {
+            universidadeHidden.addEventListener('change', function () {
+                if (this.value === 'Outra') {
+                    checkboxSemUniversidade.checked = true;
+                    checkboxSemUniversidade.dispatchEvent(new Event('change'));
+                } else {
+                    checkboxSemUniversidade.checked = false;
+                    checkboxSemUniversidade.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+    } else {
+        universidadesDiv.innerHTML = '';
+
         const entryCL = escritorios.find(e => e.sigla === comite);
         indiceSiglaComite = entryCL ? todasAiesecs.findIndex(
             o => slugify(o.text) === slugify(entryCL.nome) || slugify(o.text)
                 .includes(slugify(entryCL.nome))) : -1;
+
         aiesecDiv.innerHTML = `
         <label for="combo-input-aiesec">Qual é a AIESEC mais próxima de você? *</label>
         `;
 
-        // Use the globally populated todasAiesecs
         let preselectIndex = -1;
         if (selectedCommitteeId !== null) {
             preselectIndex = todasAiesecs.findIndex(o => o.id === selectedCommitteeId);
@@ -604,28 +814,32 @@ function criarCampos(programa, comite, anuncio, rota) {
             inputId: 'combo-input-aiesec',
             listId: 'combo-list-aiesec',
             hiddenId: 'aiesec',
-            placeholder: 'Digite ou selecione', // Placeholder for the combo box
+            placeholder: 'Digite ou selecione',
             options: todasAiesecs,
-            preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined // Use the preselectIndex calculated above
+            preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined
         });
+
         const hiddenAiesec = document.getElementById('aiesec');
+        const inputAiesec = document.getElementById('combo-input-aiesec');
+
         if (hiddenAiesec) {
             hiddenAiesec.addEventListener('change', (event) => {
-                // O ID agora chega certinho aqui:
                 selectedCommitteeId = event.target.value;
-
-                // Como o input hidden não guarda o texto, pegamos do input visível:
-                const inputVisivel = document.getElementById('combo-input-aiesec');
-                if (inputVisivel) {
-                    selectedCommitteeText = inputVisivel.value;
-                }
-
+                if (inputAiesec) selectedCommitteeText = inputAiesec.value;
             });
+        }
+
+        // Se comite for MC (MC Bazi), força a Aiesec no Brasil
+        if (String(comite || '').trim().toUpperCase() === 'MC') {
+            if (inputAiesec) inputAiesec.value = 'Aiesec no Brasil';
+            if (hiddenAiesec) hiddenAiesec.value = 'Aiesec no Brasil';
+            selectedCommitteeId = 'Aiesec no Brasil';
+            selectedCommitteeText = 'Aiesec no Brasil';
         }
 
         aiesecDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-aiesec"></div>');
     }
-    if (!anuncio) {
+    if (typeof anuncio === 'undefined' || !anuncio) {
         conheceAiesecDiv.innerHTML = `
         <label for="combo-input-conheceu">Como você conheceu a AIESEC? *</label>
         `;
@@ -655,7 +869,7 @@ function criarCampos(programa, comite, anuncio, rota) {
 
         conheceAiesecDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
-
+}
 
 function criarCamposOpicionais(idproduto) {
     idiomasDiv.innerHTML = `
@@ -1086,194 +1300,158 @@ inputVisivel.addEventListener('input', () => {
 function validarDadosObrigatorios() {
     let valido = true;
     const camposErro = [];
-    // Nome e sobrenome
-    const camposTexto = {
-        nome: {
-            label: "Nome",
-            erro: "Nome inválido."
-        },
-        sobrenome: {
-            label: "Sobrenome",
-            erro: "Sobrenome inválido."
-        }
+
+    const setErro = (id, message) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = message;
     };
-    Object.entries(camposTexto).forEach(([id, config]) => {
-        const input = document.getElementById(id);
-        const regex = /^[A-Za-zÀ-ÿ\s]+$/;
-        // se não existir, ignora
-        if (!input) return;
 
-        const valor = input.value.trim();
-        const erroEl = document.getElementById(`erro-${id}`);
+    const clearErro = (id) => setErro(id, '');
 
-        if (!regex.test(valor)) {
-            erroEl.innerText = config.erro;
-            valido = false;
-            camposErro.push(`${config.label} inválido`);
-        } else {
-            erroEl.innerText = "";
-        }
-    });
+    // Nome e sobrenome
+    const nome = document.getElementById('nome')?.value.trim() || '';
+    const sobrenome = document.getElementById('sobrenome')?.value.trim() || '';
+    const nomeRegex = /^[A-Za-zÀ-ÿ\s]+$/;
 
-    if (!validarSenha(document.getElementById('password').value).senhaValida) {
+    if (!nomeRegex.test(nome)) {
+        setErro('erro-nome', 'Nome inválido.');
+        camposErro.push('Nome inválido.');
         valido = false;
-        camposErro.push(document.getElementById('password').value.length > 0 ? "Senha Inválida"
-            : "A senha não pode ser vazia");
-        document.getElementById('erro-senha').innerText = document.getElementById('password').value.length > 0 ? "Senha Inválida"
-            : "A senha não pode ser vazia";
+    } else clearErro('erro-nome');
+
+    if (!nomeRegex.test(sobrenome)) {
+        setErro('erro-sobrenome', 'Sobrenome inválido.');
+        camposErro.push('Sobrenome inválido.');
+        valido = false;
+    } else clearErro('erro-sobrenome');
+
+    // Senha
+    const senha = document.getElementById('password')?.value || '';
+    const senhaValidacao = validarSenha(senha);
+    if (!senhaValidacao.senhaValida) {
+        const mensagem = senha ? 'Senha inválida.' : 'A senha não pode ser vazia.';
+        setErro('erro-senha', mensagem);
+        camposErro.push(mensagem);
+        valido = false;
     } else {
-        document.getElementById('erro-senha').innerText = "";
+        clearErro('erro-senha');
     }
 
     // Email
-    document.querySelectorAll('input[name="email[]"]').forEach(input => {
-        const valor = input.value.trim();
-        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
-
-        if (!regex.test(valor)) {
-            document.getElementById('erro-email').innerText = "E-mail inválido.";
-            valido = false;
-            camposErro.push("E-mail Inválido");
-        } /*else {
-            // Checa provedor
-            const provedores = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
-            const dominio = valor.split('@')[1].toLowerCase();
-            if (!provedores.includes(dominio)) {
-                document.getElementById('erro-email').textContent = "Use um e-mail de provedor comum (ex: gmail.com, hotmail.com, icloud.com, outlook.com)";
-                valido = false;
-                camposErro.push("Use um e-mail de provedor comum \n (ex: gmail.com, hotmail.com, icloud.com, hotmail.com)");
-            } else {
-                document.getElementById('erro-email').textContent = "";
-            }
-        }*/else {
-            document.getElementById('erro-email').innerText = "";
-        }
-    });
-
-    // Telefone
-    document.querySelectorAll('input[name="telefone[]"]').forEach(input => {
-        const valor = input.value.trim();
-        const erro = document.getElementById('erro-telefone');
-        const regex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
-
-        if (!regex.test(valor)) {
-            erro.innerText = "Telefone inválido. Use o formato (DD) 9 XXXX-XXXX";
-            valido = false;
-            camposErro.push("Telefone Inválido")
-        } else {
-            erro.innerText = "";
-        }
-    });
-
-    // Data
-    if (!document.getElementById('nascimento').value) {
-        document.getElementById('erro-nascimento').innerText = "Data inválida.";
-        valido = false;
-        camposErro.push("Data Inválida")
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
+    const emails = Array.from(document.querySelectorAll('input[name="email[]"]'));
+    let emailTemErro = false;
+    if (emails.length === 0) {
+        setErro('erro-email', 'Informe pelo menos um e-mail.');
+        camposErro.push('Informe um e-mail válido.');
+        emailTemErro = true;
     } else {
-        document.getElementById('erro-nascimento').innerText = "";
-    }
-        const universidade = document.getElementById("universidade");
-        const erroUniversidade = document.getElementById("erro-universidade");
-        const semUniversidade = document.getElementById("sem-universidade");
-        const campoAiesec = document.getElementById("aiesec");
-        const erroAiesec = document.getElementById("erro-aiesec");
-
-    if (universidade && !semUniversidade?.checked) {
-        if (!universidade.value) {
-            erroUniversidade.textContent = "Selecione sua universidade.";
-            valido = false;
-            camposErro.push("Selecione sua universidade.");
-        } else {
-            erroUniversidade.textContent = "";
-        }
-    }
-
-    if (semUniversidade?.checked) {
-        if (!campoAiesec || !campoAiesec.value) {
-            if (erroAiesec) erroAiesec.textContent = "Selecione ou digite a AIESEC mais próxima de você.";
-            valido = false;
-            camposErro.push("Selecione ou digite a AIESEC mais próxima de você.");
-        } else {
-            if (erroAiesec) erroAiesec.textContent = "";
-        }
-    }
-
-    const camposSelect = {
-        produto: {
-            textErro: "programa",
-            onValid: (campo) => {
-                idProduto.push(
-                    campo.value
-                );
+        emails.forEach(input => {
+            const valor = (input.value || '').trim();
+            if (!emailRegex.test(valor)) {
+                emailTemErro = true;
             }
-        },
-        conheceu: {
-            textErro: "por onde conheceu a aiesec",
-            onValid: (campo) => {
-                idAnuncio.push(campo.value);
-            }
-        },
-        produto: { textErro: "programa" },
-        aiesec: { textErro: "qual é o escritório mais próximo de você" },
-        conheceu: { textErro: "por onde conheceu a aiesec" }
-    };
-    Object.entries(camposSelect).forEach(([id, config]) => {
-        let valueToCheck = null;
-
-        // Prioritize global selectedId if set by UTM
-        if (id === 'produto') valueToCheck = selectedProductId;
-        else if (id === 'aiesec') valueToCheck = selectedCommitteeId;
-        else if (id === 'conheceu') valueToCheck = selectedAdSourceId;
-
-        // If the dropdown exists, prioritize its current value (user selection)
-        const campoElement = document.getElementById(id);
-        if (campoElement) {
-            if (campoElement.tagName === 'SELECT') { // Regular select dropdown
-                if (campoElement.value) valueToCheck = campoElement.value;
-            } else if (campoElement.type === 'hidden') { // Combo box hidden input
-                if (campoElement.value) valueToCheck = campoElement.value;
-            }
-        }
-
-        const erroEl = document.getElementById(`erro-${id}`);
-
-        if (!valueToCheck) {
-            if (erroEl) { // Só entra aqui se o elemento existir no HTML
-                erroEl.innerText = `Selecione ou digite uma opção de ${config.textErro}.`;
-            }
-            valido = false;
-            camposErro.push(`Selecione ou digite uma opção de ${config.textErro}.`);
-        } else {
-            if (erroEl) {
-                erroEl.innerText = "";
-            }
-        }
-    });
-
-
-    // Checkbox
-    if (!document.getElementById('politica').checked) {
-        document.getElementById('erro-politica').textContent = "Você deve aceitar.";
-        valido = false;
-        camposErro.push("você deve aceitar o termo")
-    } else {
-        document.getElementById('erro-politica').textContent = "";
-    }
-    if (valido) {
-        return true;
-    } else {
-        // Modal de erro (via função reutilizável)
-        return showModal({
-            title: "Dados incorretos.",
-            message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')
-                }`,
-            type: "error",
-            showConfirm: false,
-            showCancel: true,
-            cancelText: "Corrigir"
         });
     }
+    if (emailTemErro) {
+        setErro('erro-email', 'E-mail inválido.');
+        camposErro.push('E-mail inválido.');
+        valido = false;
+    } else clearErro('erro-email');
+
+    // Telefone
+    const telefoneRegex = /^\(\d{2}\)\s9\s\d{4}-\d{4}$/;
+    const telefones = Array.from(document.querySelectorAll('input[name="telefone[]"]'));
+    let telefoneTemErro = false;
+    if (telefones.length === 0) {
+        setErro('erro-telefone', 'Informe pelo menos um telefone.');
+        camposErro.push('Informe um telefone válido.');
+        telefoneTemErro = true;
+    } else {
+        telefones.forEach(input => {
+            const valor = (input.value || '').trim();
+            if (!telefoneRegex.test(valor)) telefoneTemErro = true;
+        });
+    }
+    if (telefoneTemErro) {
+        setErro('erro-telefone', 'Telefone inválido. Use o formato (DD) 9 XXXX-XXXX');
+        camposErro.push('Telefone inválido.');
+        valido = false;
+    } else clearErro('erro-telefone');
+
+    // Data
+    const nascimento = document.getElementById('nascimento')?.value.trim() || '';
+    const dataRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!dataRegex.test(nascimento)) {
+        setErro('erro-nascimento', 'Data inválida.');
+        camposErro.push('Data inválida.');
+        valido = false;
+    } else clearErro('erro-nascimento');
+
+    // Produto
+    if (!selectedProductId) {
+        setErro('erro-produto', 'Selecione o produto.');
+        camposErro.push('Produto não selecionado.');
+        valido = false;
+    } else clearErro('erro-produto');
+
+    // Universidade / AIESEC
+    const semUniversidade = document.getElementById('sem-universidade')?.checked;
+    const universidadeHidden = document.getElementById('universidade')?.value;
+    const aiesecHidden = document.getElementById('aiesec')?.value;
+
+    if (semUniversidade) {
+        clearErro('erro-universidade');
+        if (!aiesecHidden) {
+            setErro('erro-aiesec', 'Selecione ou digite a AIESEC mais próxima de você.');
+            camposErro.push('AIESEC obrigatória quando universidade não está listada.');
+            valido = false;
+        } else {
+            clearErro('erro-aiesec');
+        }
+    } else {
+        clearErro('erro-aiesec');
+        if (!universidadeHidden) {
+            setErro('erro-universidade', 'Selecione sua universidade.');
+            camposErro.push('Universidade obrigatória.');
+            valido = false;
+        } else {
+            clearErro('erro-universidade');
+        }
+    }
+
+    // Como conheceu
+    const conheceuHidden = document.getElementById('conheceu')?.value;
+    if (!conheceuHidden && !selectedAdSourceId) {
+        setErro('erro-conheceu', 'Selecione ou digite como você conheceu a AIESEC.');
+        camposErro.push('Como conheceu é obrigatório.');
+        valido = false;
+    } else {
+        clearErro('erro-conheceu');
+    }
+
+    // Política
+    const politica = document.getElementById('politica')?.checked;
+    if (!politica) {
+        setErro('erro-politica', 'Você deve aceitar a política de privacidade.');
+        camposErro.push('Política de privacidade não aceita.');
+        valido = false;
+    } else {
+        clearErro('erro-politica');
+    }
+
+    if (valido) {
+        return true;
+    }
+
+    return showModal({
+        title: 'Dados incorretos.',
+        message: `Por favor, corrija os erros e tente novamente.\n\n${camposErro.map(campo => `- ${campo}`).join('\n')}`,
+        type: 'error',
+        showConfirm: false,
+        showCancel: true,
+        cancelText: 'Corrigir'
+    });
 }
 
 function validarDadosOpcionais() {
@@ -1410,24 +1588,54 @@ async function enviarFormularioObrigatorio() {
             dados += `<strong>Produto</strong>: ${produtoSolicitado.options[produtoSolicitado.selectedIndex].textContent}<br>`;
         }
 
-        const universidadeTexto = document.getElementById('universidade')?.value || '';
+        const produtoSlug = getSelectedProductSlug();
+        const codigoUniversidade = produtoSlug === 'gv' ? 'ogv' : 'ogt';
+        const universidadeInput = document.getElementById('combo-input-universidades')?.value?.trim() || document.getElementById('universidade')?.value?.trim() || '';
         const semUniversidade = document.getElementById('sem-universidade')?.checked || false;
-        const aiesecTexto = document.getElementById('combo-input-aiesec')?.value || '';
-        const conheceuTexto = document.getElementById('combo-input-conheceu')?.value || '';
+        const aiesecTexto = document.getElementById('combo-input-aiesec')?.value?.trim() || '';
+        const conheceuTexto = document.getElementById('combo-input-conheceu')?.value?.trim() || '';
 
-        if (universidadeTexto && !semUniversidade) {
-    dados += `<strong>Universidade</strong>: ${universidadeTexto}<br>`;
-}
+        const nomeCLUniversidade = getNomeCLFromUniversidade(universidadeInput, produtoSlug);
+        const nomeCL = nomeCLUniversidade || aiesecTexto || 'Aiesec mais próxima';
 
-        if (semUniversidade && aiesecTexto) {
-            dados += `<strong>AIESEC mais próxima</strong>: ${aiesecTexto}<br>`;
+        if (nomeCLUniversidade) {
+            const committeeIdMapeado = getAiesecIdFromNome(nomeCLUniversidade);
+            if (committeeIdMapeado) {
+                selectedCommitteeId = committeeIdMapeado;
+                selectedCommitteeText = nomeCLUniversidade;
+            }
         }
-        if (semUniversidade && aiesecTexto) {
-        dados += `<strong>AIESEC mais próxima</strong>: ${aiesecTexto}<br>`;
-         }
+
+        if (!selectedCommitteeId && aiesecTexto) {
+            const committeeIdMapeado = getAiesecIdFromNome(aiesecTexto);
+            selectedCommitteeId = committeeIdMapeado || aiesecTexto;
+            selectedCommitteeText = selectedCommitteeText || aiesecTexto;
+        }
+
+        if (!selectedCommitteeId) {
+            selectedCommitteeId = document.getElementById('aiesec')?.value?.trim() || selectedCommitteeId;
+        }
+        if (!selectedCommitteeText) {
+            selectedCommitteeText = document.getElementById('combo-input-aiesec')?.value?.trim() || selectedCommitteeText;
+        }
+
+        if (!semUniversidade) {
+            dados += `<strong>Universidade</strong>: ${universidadeInput || 'Não informada'}<br>`;
+        } else {
+            const universidadeTextoAvulso = universidadeInput ? `${universidadeInput} (não listada)` : 'Não está cursando ou não está listada';
+            dados += `<strong>Universidade</strong>: ${universidadeTextoAvulso}<br>`;
+        }
+        if (aiesecTexto) {
+            dados += `<strong>AiESEC mais próxima</strong>: ${nomeCL}<br>`;
+        }
+
         if (conheceuTexto) {
             dados += `<strong>Como conheceu</strong>: ${conheceuTexto}<br>`;
         }
+
+        // Código interno para envios back-end
+        // Mantém use acima no bloco data que segue
+
 
         // Sempre presente
         dados += `<strong>Aceitou Política</strong>: Sim`;
@@ -1460,24 +1668,26 @@ async function enviarFormularioObrigatorio() {
             await esperarModalFechar(modal);
 
             const mapeamentoProgramas = { 1: 7, 3: 8, 6: 8, 4: 9 };
+
             const data = {
-                // Use the global selectedId variables
+                // Use the global selectedId variáveis
                 nome,
                 sobrenome,
                 senha,
+                universidade:universidadeInput,
                 idprograma: selectedProductId == 1 ? 7 : selectedProductId == 3 || selectedProductId == 6 ? 8 : selectedProductId == 4 ? 9 : null,
-                nomeCL: selectedCommitteeText.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '').replace(/\s+/g, ' ').trim(),
+                nomeCL: nomeCL == "MC BAZI" ? "AIESEC no Brasil" : nomeCL.replace(/\bs[aã]o\s*p[aã]ulo\s+unidade\b/gi, '')?.replace(/\s+/g, ' ').trim(),
                 emails: emailsEnvio,
                 telefones: telefonesEnvio,
                 dataNascimento: inputISO.value,
                 idProduto: selectedProductId,
-                idComite: selectedCommitteeId,
+                idComite: nomeCL == "MC BAZI" ? 39 : selectedCommitteeId,
                 idCategoria: selectedAdSourceId,
                 idAutorizacao: "1",
                 idAnuncio: selectedAdFormId || 0,
                 tag: slugify(parametros.campanha)
             };
-            //console.log(data)
+
             try {
                 const response = await fetch("https://baziAiesec.pythonanywhere.com/adicionar-card", {
                     method: "POST",
@@ -1490,9 +1700,25 @@ async function enviarFormularioObrigatorio() {
                     try { backend = await response.json(); } catch (_) { backend = null; }
                     throw { status: response.status, backend };
                 }
-                const result = await response.json(); // 👈 AQUI
-                //console.log(result)
-                itemID = result.data.item_id;              // 👈 AQUI
+
+                const result = await response.json();
+                itemID = result.data?.item_id || 0;
+
+                itemID = itemID || 0;
+                esconderSpinner();
+                showModal({
+                    title: "Dados enviados com sucesso!",
+                    message:
+                        `Em breve entraremos em contato com você, fique atento ao e-mail ou ao telefone que você informou, e lembre-se:
+                        senha cadastrada: ${senha} 
+                        e-mail referencia que você cadastrou: ${emails[0]?.email}`,
+                    type: "success",
+                    showCancel: false,
+                    confirmText: "Ok",
+                    onConfirm: () => {
+                        resolve(true)
+                    }
+                });
                 esconderSpinner();
                 showModal({
                     title: "Dados enviados com sucesso!",
@@ -1654,6 +1880,9 @@ async function enviarFormularioOpicionais() {
                         try { backend = await response.json(); } catch (_) { backend = null; }
                         throw { status: response.status, backend };
                     }
+
+                    const result = await response.json();
+                    itemID = result?.data?.item_id || itemID;
 
                     esconderSpinner();
                     showModal({
@@ -1876,12 +2105,12 @@ async function preencherDropdown(parametros) {
         if (entryProduto) {
             const idxProduto = todosProdutos.findIndex(op => slugify(op.text) === slugify(entryProduto.nome) || slugify(op.text).includes(slugify(entryProduto.nome)));
             selectedProductId = idxProduto >= 0 ? todosProdutos[idxProduto].id : null;
-            
+
         }
     } else if (parametros.rota) { // Se o UTM de produto estiver faltando, mas a rota estiver presente
         const productOption = todosProdutos.find(op => slugify(op.text) === parametros.rota);
         if (productOption) selectedProductId = productOption.id;
-        
+
     }
 
     // 2. Comitê AIESEC
@@ -1891,7 +2120,7 @@ async function preencherDropdown(parametros) {
             const idxCL = todasAiesecs.findIndex(op => slugify(op.text) === slugify(entryCL.nome) || slugify(op.text).includes(slugify(entryCL.nome)));
             selectedCommitteeId = idxCL >= 0 ? todasAiesecs[idxCL].id : null;
             selectedCommitteeText = entryCL.nome;
-            
+
         }
     }
 
@@ -1900,7 +2129,7 @@ async function preencherDropdown(parametros) {
         const entryCategoria = todasOpcoes_Como_Conheceu.find(opcoes => slugify(opcoes.text) === parametros.anuncio);
         if (entryCategoria) {
             selectedAdSourceId = entryCategoria.id;
-           
+
         }
     }
 
@@ -1922,7 +2151,7 @@ async function preencherDropdown(parametros) {
         const entryTipoAnuncio = todasopçoes_Tipo_Anuncio.find(opcoes => slugify(opcoes.text) === slugify(parametros.formaAnuncio));
         if (entryTipoAnuncio) {
             selectedAdFormId = entryTipoAnuncio.id;
-           
+
         }
     }
 }
@@ -2055,7 +2284,30 @@ function updateProgress() {
         `Etapa ${currentStage + 1} de ${TOTAL_STAGES}`;
 }
 
+function fecharModalSeAberto() {
+    const modalEl = document.getElementById('exampleModalLong');
+    if (!modalEl) return;
+
+    const modalInst = bootstrap.Modal.getInstance(modalEl);
+    if (modalInst) {
+        modalInst.hide();
+    }
+
+    // Remover backdrop residual para evitar sobreposição fixa na tela
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) {
+        backdrop.remove();
+    }
+
+    // Resetar body overflow caso tenha ficado travado
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
 function showStage(index) {
+    fecharModalSeAberto();
+
     stages.forEach((stage, i) => {
         stage.classList.toggle("active", i === index);
     });
