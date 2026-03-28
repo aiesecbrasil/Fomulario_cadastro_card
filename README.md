@@ -25,3 +25,4 @@ Além disso, realiza a **integração com o CRM Podio**, permitindo que o proces
 ## 👨‍💻 Autor  
 - [Caio Marinho](https://github.com/Caio-Marinho)
 - [João Pedro](https://github.com/JPNat)
+- [Eduarda Shiratsu](https://github.com/EduardaShiratsu)
