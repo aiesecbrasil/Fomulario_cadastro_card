@@ -792,6 +792,36 @@ function criarCampos(programa, comite, anuncio, rota) {
                 }
             });
         }
+    } 
+    if (typeof anuncio === 'undefined' || !anuncio) {
+        conheceAiesecDiv.innerHTML = `
+        <label for="combo-input-conheceu">Como você conheceu a AIESEC? *</label>
+        `;
+
+        // Use the globally populated todasOpcoes_Como_Conheceu
+        let preselectIndex = -1;
+        if (selectedAdSourceId !== null) {
+            preselectIndex = todasOpcoes_Como_Conheceu.findIndex(o => o.id === selectedAdSourceId);
+        }
+
+        buildCombo({
+            container: conheceAiesecDiv,
+            inputId: 'combo-input-conheceu',
+            listId: 'combo-list-conheceu',
+            hiddenId: 'conheceu',
+            placeholder: 'Digite ou selecione', // Placeholder for the combo box
+            options: todasOpcoes_Como_Conheceu,
+            preselectIndex: preselectIndex >= 0 ? preselectIndex : undefined // Use the preselectIndex calculated above
+        });
+        // Update selectedAdSourceId when combo value changes
+        const hiddenConheceu = document.getElementById('conheceu');
+        if (hiddenConheceu) {
+            hiddenConheceu.addEventListener('change', (event) => {
+                selectedAdSourceId = event.target.value;
+            });
+        }
+
+        conheceAiesecDiv.insertAdjacentHTML('beforeend', '<div class="error-msg" id="erro-conheceu"></div>');
     }
 }
 
