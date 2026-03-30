@@ -766,7 +766,7 @@ function criarCampos(programa, comite, anuncio, rota) {
         <div class="input-extra checkbox-group" style="margin-top: 10px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="sem-universidade" name="sem-universidade" />
-                <span>Minha universidade não está listada ou não estou mais cursando graduação</span>
+                <span>Não tenho vínculo com nenhuma universidade</span>
             </label>
         </div>
         `;
@@ -780,7 +780,7 @@ function criarCampos(programa, comite, anuncio, rota) {
             inputId: 'combo-input-universidades',
             listId: 'combo-list-universidades',
             hiddenId: 'universidade',
-            placeholder: 'Digite ou selecione',
+            placeholder: 'Digite ou selecione a Universidade ou faculdade (em curso ou concluída)',
             options: optionsUniversidades
         });
 
