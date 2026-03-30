@@ -766,7 +766,7 @@ function criarCampos(programa, comite, anuncio, rota) {
         <div class="input-extra checkbox-group" style="margin-top: 10px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="sem-universidade" name="sem-universidade" />
-                <span>Não tenho vínculo com nenhuma universidade</span>
+                <span>Minha universidade não está listada ou não tenho vínculo com nenhum universidade</span>
             </label>
         </div>
         `;
