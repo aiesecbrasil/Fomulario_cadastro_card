@@ -677,7 +677,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
         showModal({
             title: "Erro de conexão",
-            message: "Por favor, Recarregue a Pagina e tente novamente.\nCaso o erro persista contate o email: contato@aiesec.org.br",
+            message: `Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br
+                            enviando nome completo, email, telefone, cidade e programa de interesse`,
             type: "error",
             showConfirm: false,
             showCancel: true,
@@ -1756,7 +1757,8 @@ async function enviarFormularioObrigatorio() {
                     message:
                         err?.status === 400
                             ? ""
-                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                            : `Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br
+                            enviando nome Completo, email, telefone, cidade e programa de interesse`,
                     type: "error",
                     showConfirm: false,
                     showCancel: true,
@@ -1919,7 +1921,8 @@ async function enviarFormularioOpicionais() {
                         message:
                             err?.status === 400
                                 ? ""
-                                : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                                : `Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br
+                            enviando nome Completo, email, telefone, cidade e programa de interesse`,
                         type: "error",
                         showConfirm: false,
                         showCancel: true,
@@ -1947,7 +1950,8 @@ async function enviarFormularioOpicionais() {
                     message:
                         err?.status === 400
                             ? ""
-                            : "Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br",
+                            : `Por favor, tente novamente.\nCaso o erro persista, contate o email: contato@aiesec.org.br
+                            enviando nome Completo, email, telefone, cidade e programa de interesse`,
                     type: "error",
                     showConfirm: false,
                     showCancel: true,
