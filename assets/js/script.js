@@ -1407,27 +1407,34 @@ function validarDadosObrigatorios() {
     } else clearErro('erro-produto');
 
     // Universidade / AIESEC
-    const semUniversidade = document.getElementById('sem-universidade')?.checked;
-    const universidadeHidden = document.getElementById('universidade')?.value;
-    const aiesecHidden = document.getElementById('aiesec')?.value;
-
-    if (semUniversidade) {
+    if (parametros?.comite) {
+        // Se veio o comitê na URL, os campos nem existem no DOM, então apenas limpa os erros
         clearErro('erro-universidade');
-        if (!aiesecHidden && !selectedCommitteeId) {
-            setErro('erro-aiesec', 'Selecione ou digite a AIESEC mais próxima de você.');
-            camposErro.push('AIESEC obrigatória quando universidade não está listada.');
-            valido = false;
+        clearErro('erro-aiesec');
+    } else {
+        // Se NÃO veio o comitê na URL, valida os elementos do DOM normalmente
+        const semUniversidade = document.getElementById('sem-universidade')?.checked;
+        const universidadeHidden = document.getElementById('universidade')?.value;
+        const aiesecHidden = document.getElementById('aiesec')?.value;
+
+        if (semUniversidade) {
+            clearErro('erro-universidade');
+            if (!aiesecHidden && !selectedCommitteeId) {
+                setErro('erro-aiesec', 'Selecione ou digite a AIESEC mais próxima de você.');
+                camposErro.push('AIESEC obrigatória quando universidade não está listada.');
+                valido = false;
+            } else {
+                clearErro('erro-aiesec');
+            }
         } else {
             clearErro('erro-aiesec');
-        }
-    } else {
-        clearErro('erro-aiesec');
-        if (!universidadeHidden && !selectedCommitteeId) {
-            setErro('erro-universidade', 'Selecione sua universidade.');
-            camposErro.push('Universidade obrigatória.');
-            valido = false;
-        } else {
-            clearErro('erro-universidade');
+            if (!universidadeHidden && !selectedCommitteeId) {
+                setErro('erro-universidade', 'Selecione sua universidade.');
+                camposErro.push('Universidade obrigatória.');
+                valido = false;
+            } else {
+                clearErro('erro-universidade');
+            }
         }
     }
 
